@@ -2,6 +2,5 @@ HelloWorld/.vs/
 */.vs/**
 */Debug/
 */Debug/**
+*.Muster
 
-*.Muster
-*.Muster
