@@ -13,9 +13,10 @@
 #define INIT_LOW -22
 #define LOW_LIMIT -8
 #define HIGH_LIMIT 8
-static int8_t _servo1Pos = LOW_LIMIT;
 
-static int8_t lowPulsDuration = INIT_LOW;
+volatile uint16_t baseRateTimer;
+static int8_t _servo1Pos = LOW_LIMIT;
+static int8_t highPulsDuration = INIT_LOW;
 static uint8_t enterAtomicNesting = 0;
 
 void EnterAtomic(void)
@@ -77,18 +78,19 @@ void SetPosition(uint8_t pos)
 void InitializeServoCtrl(void)
 {
 
+	
 	ServoPort &= ~0x01;	
 	DDRServo = 0xFF;
 	TCNT0 = 0;
 	TCCR0 = 0x0D;	//prescaler = 5 (1024), wgm12=1 (0x8 =Clear timer on counter match)
-	OCR0 = 80;
+	OCR0 = 40;
 	TIMSK |=0x2;  // enable compare match irq
 	
 }
 
 void StartControlPulse(void)
 {
-	lowPulsDuration = INIT_LOW;
+	highPulsDuration = INIT_LOW;
 	TCCR2 = 0x01; // prescaler = 1 bei 3600000 Hz => 2.2us = 450 ticks für gesamtausschlag 
 	TCNT2 = 0;
 	OCR2 = 1;
@@ -100,6 +102,7 @@ void StartControlPulse(void)
 
 ISR(TIMER0_COMP_vect)
 {
+	baseRateTimer = 0;
 	StartControlPulse();
 	TogglePortPin(2); 
 }
@@ -107,8 +110,8 @@ ISR(TIMER0_COMP_vect)
 ISR(TIMER2_COMP_vect)
 {
 
-	lowPulsDuration++;
-	if(lowPulsDuration >= _servo1Pos)
+	highPulsDuration++;
+	if(highPulsDuration >= _servo1Pos)
 	{
 		TCCR2 = 0;
 		TIMSK &= ~0x80;

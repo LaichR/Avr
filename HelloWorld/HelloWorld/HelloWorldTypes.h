@@ -11,6 +11,8 @@
 
 #define MAX_MESSAGE_SIZE 16
 
+extern volatile uint16_t baseRateTimer;
+
 typedef enum
 {
 	False = 0,
