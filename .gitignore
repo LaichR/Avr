@@ -1,7 +1,3 @@
-HelloWorld/.vs/
-*/.vs/**
-*/Debug/
-*/Debug/**
-*.Muster
 
-HelloWorld/.vs/HelloWorld/v14/.atsuo
+.vs/
+Debug/
