@@ -1,0 +1,7 @@
+{
+	"device": "m32", 
+	"target": "atmega32", 
+	"programmer": "stk500", 
+	"port": "com7"
+}
+
