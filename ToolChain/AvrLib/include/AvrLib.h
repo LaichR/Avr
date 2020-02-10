@@ -62,7 +62,7 @@ typedef enum
 */
  typedef struct Message_tag
  {
-     uint8_t Priority;				///< Definiert die Priorität; je kleiner die Zahl, desto grösser die Priorität; 
+     uint8_t Priority;				///< Definiert die Priorität; je kleiner die Zahl, desto grösser die Priorität;
                                     ///  Es sind vier Prioritäten defniert
      uint8_t Id;					///< Id der Meldung
      union
@@ -70,7 +70,7 @@ typedef enum
          struct
          {
              uint8_t MsgParamLow;			///< lower byte[0] des Meldungs-Parameters
-             uint8_t MsgParamHigh;			///< upper byte[1] des Meldungs-Paramsters 
+             uint8_t MsgParamHigh;			///< upper byte[1] des Meldungs-Paramsters
          };
          void* Ptr;                         ///< man kann die Parameter auch als Pointer interpretieren
      };
@@ -116,7 +116,7 @@ void RegisterFsm(Fsm* fsm);
 void SetState(Fsm* fsm, StateHandler state);
 
 
-/** 
+/**
 * @brief Funktion zum Senden einer Meldung
 *
 * @param prio Priorität, mit welcher die Meldung bearbeitet werden soll
@@ -129,13 +129,17 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh);
 /**
 * @brief Funktion um ein event an die registrierten Zustandsmaschinen zu verteilen
 *
-* @return Status welcher angibt, ob die Meldungsqueue leer war; 
-*  - False: es war keine Meldung in der Queue; 
+* @return Status welcher angibt, ob die Meldungsqueue leer war;
+*  - False: es war keine Meldung in der Queue;
 *  - True: eine Meldung wurde dispatched.
 * Der return wert kann sinnvoll sein, um den Prozessor in den sleep mode zu stellen.
 */
 Bool DispatchEvent(void);
 
+/**
+* @brief initialize port D to use the uart
+*/
+void Usart_Init(void);
 
 /**
 * Don't bother about these implementations; you should not use them directly;
