@@ -16,7 +16,7 @@ elfLinkerTemplate = """
 $(OUT_FILE_PATH): $(OBJS) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 \t@echo Building target: $@
 \t@echo Invoking  AVR\\GNU Linker : 5.4.0
-\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe -o$(OUT_FILE_PATH) $(OBJS_AS_ARGS)  -Wl,-Map="$(ProjectBuild)\\$(Project).map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib"
+\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe -o$(OUT_FILE_PATH) $(OBJS_AS_ARGS) $(LIB_DEP)  -Wl,-Map="$(ProjectBuild)\\$(Project).map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib"
 \t@echo Finished building target: $@
 \t$(AVR_TOOLS_PATH)\\bin\\avr-objcopy.exe -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures  "$(ProjectBuild)\\$(Project).elf" "$(ProjectBuild)\\$(Project).hex"
 \t$(AVR_TOOLS_PATH)\\bin\\avr-objcopy.exe -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "$(ProjectBuild)\\$(Project).elf" "$(ProjectBuild)\\$(Project).eep" || exit 0
@@ -37,7 +37,7 @@ compileSrcTemplate = """
 $objectFile: $sourceFile
 \t@echo Building file: $<
 \t@echo Invoking: AVR\\GNU C Compiler : 5.4.0
-\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c -std=gnu99 -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
+\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I "$(AVR_LIB_PATH)\\include" -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c -std=gnu99 -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
 \t@echo Finished building: $<
 """
 
@@ -59,6 +59,7 @@ C_DEPS_AS_ARGS :=
 EXECUTABLES :=
 OUT_FILE_PATH := $(ProjectBuild)\\$(Project).$extension
 AVR_TOOLS_PATH := $(AvrGcc)
+AVR_LIB_PATH := $(ToolsRoot)\\AvrLib
 QUOTE := "
 OUTPUT_FILE_DEP:=
 LIB_DEP:=
@@ -77,7 +78,7 @@ C_DEPS +=  $cDependencies
 
 C_DEPS_AS_ARGS +=  $cDependencies
 
-LIB_DEP+= $additionalLibs
+LIB_DEP+= $(AVR_LIB_PATH)\\lib\\AvrLib.a
 
 LINKER_SCRIPT_DEP+=
 
@@ -115,7 +116,8 @@ clean:
 \t$(RM) $(ProjectBuild)\\$(Project).*
 """
 
-def GenerateMake( inputDir, outputDir, linkerStage = 'elf'):
+def GenerateMake( inputDir, outputDir, toolsRoot, linkerStage = 'elf'):
+
     def MakeFileList( s, outDir, extension ):
         return list(map( lambda x: "{0}\\{1}.{2}".format(outDir, x.stem, extension), s ))
 
@@ -141,6 +143,7 @@ def GenerateMake( inputDir, outputDir, linkerStage = 'elf'):
     objectList = MakeFileList(sources, outputDir, 'o')
     print ( objectList )
     flashTarget = ''
+
     if linkerStage == 'elf': #otherwise we should not generate a flash target!
         flashTarget = string.Template(flashTargetTemplate).safe_substitute(
             programmer=targetConfigs['programmer'],
@@ -151,7 +154,7 @@ def GenerateMake( inputDir, outputDir, linkerStage = 'elf'):
         'linkerStage': eval("{0}LinkerTemplate".format(linkerStage)),
         'cSources': " ".join( map(str, sources ) ),
         'asmSources': "",
-        'additionalLibs' : "",
+        'ToolsRoot' : toolsRoot,
         'ppSources': " ".join( ppSourceList ),
         'objects' : " ".join( objectList ),
         'cDependencies': " ".join( MakeFileList(sources, outputDir, 'd')),
@@ -173,6 +176,7 @@ if __name__ == "__main__":
     projRoot = sys.argv[1]
     projBuild = sys.argv[2]
     linkerStage = sys.argv[3]
-    GenerateMake( projRoot, projBuild, linkerStage )
+    toolsRoot = os.environ['ToolsRoot']
+    GenerateMake( projRoot, projBuild, toolsRoot, linkerStage )
 
 #GenerateMake(r'C:\Users\rolfl\Documents\GitHub\Avr\HelloWorld', r'C:\Users\rolfl\Documents\GitHub\Avr\HelloWorld\Build')

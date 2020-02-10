@@ -3,7 +3,7 @@ import clr, os, sys, pathlib, re, itertools, functools, json
 #link to dot net libraries
 p = pathlib.Path(__file__)
 dotNetPath = (p.parent.parent / 'DotNetLib').resolve()
-print( dotNetPath )
+# print( dotNetPath )
 gccRoot = p.parent.parent / 'avr8-gnu-toolchain-win32_x86'
 sys.path.append(str(dotNetPath))
 
@@ -19,7 +19,7 @@ __traceInfo = []
 
 class TraceInfoEncoder(json.JSONEncoder):
     def default( self, obj):
-        print("encoding")
+        #print("encoding")
         if( isinstance(obj, TraceInfo)):
             return obj.GetAsJsonObj()
         return json.JSONEncoder.default( self, obj )
@@ -48,7 +48,7 @@ def InitPreprocessor(appInclues, sysIncludes):
         __ppContext.AddApplicationInclude(inc)
     for inc in sysIncludes:
         __ppContext.AddSystemInclude(inc)
-    print( "adding " + str((gccRoot / 'avr' / 'include')))
+    #print( "adding " + str((gccRoot / 'avr' / 'include')))
     __ppContext.AddSystemInclude(str((gccRoot / 'avr' / 'include')))
     __ppContext.SetPredefinedSymbol("__AVR_DEV_LIB_NAME__", "m32")
     __ppContext.SetPredefinedSymbol("__GNUC__", "5")
@@ -70,7 +70,7 @@ def RewriteTrace( startToken, tokenizer, f ):
     def EvalArgs( traceStr ):
         args = re.finditer('%(?P<size>\d\d?)', traceStr)
         arguments = list(map(lambda x: int(x.group('size')), args ))
-        print (arguments)
+        #print (arguments)
         sum = int(functools.reduce(lambda x, y: x+ y, arguments, 0 ) / 8)
         return sum, arguments
 
@@ -100,21 +100,22 @@ def RewriteTrace( startToken, tokenizer, f ):
         assert( t )
         if t.Id == ClangToken.Comma:
             if nesting == 1 and len(singleArg) > 0:
-                traceArgTokens.append( functools.reduce(lambda x,y: x+ y, singleArg, '') )
+                traceArgTokens.append( functools.reduce(lambda x, y: x + y, singleArg, '') )
+                singleArg.clear()
         elif t.Id == ClangToken.LPar:
             nestring += 1
         elif t.Id == ClangToken.RPar:
             nesting -= 1
             if nesting == 0:
-                traceArgTokens.append( functools.reduce(lambda x,y: x+ y, singleArg, '') )
+                traceArgTokens.append( functools.reduce(lambda x,y: x + y, singleArg, '') )
                 break
         else:
             singleArg.append(GetTokenStr(t))
 
         t = tokenizer.GetNextToken()
 
-    print( len(arguments))
-    print( len(traceArgTokens))
+    #print( len(arguments))
+    #p#rint( traceArgTokens )
     trace = TraceInfo( traceId, traceString, t.FileName, t.LineNumber, len(arguments) )
     __traceInfo.append(trace)
     f.write( functools.reduce(  lambda x, y: x + y, startToken.LeadingWhiteSpace, '' ))
@@ -136,7 +137,7 @@ def Preprocess( input, outDir ):
     scanner = ClangScanner(__ppContext, input)
     fileName = pathlib.Path(input).parts[-1]
     outputFile = pathlib.Path(outDir) / fileName
-    print (str(outputFile))
+    #print (str(outputFile))
     with open(str(outputFile), "w") as f:
         while scanner.MoveNext():
             for ch in scanner.Current.LeadingWhiteSpace:
@@ -151,7 +152,7 @@ def Rewrite( input, outDir):
     fileName = pathlib.Path(input).parts[-1]
 
     outputFile = pathlib.Path(outDir) / fileName
-    print ( outputFile )
+    #print ( outputFile )
     if outputFile.exists():
         os.remove(outputFile)
     try:
@@ -173,8 +174,8 @@ def ClearTraceRecords():
 
 def DumpTraceRecords(path):
     global __traceInfo
-    print("dumping traceinfo:")
-    print( __traceInfo )
+    #print("dumping traceinfo:")
+    #print( __traceInfo )
     traceInfoFile = pathlib.Path(path) / "TraceRecords.json"
     with open(traceInfoFile, "w") as f:
         json.dump(__traceInfo,f, cls=TraceInfoEncoder)

@@ -13,10 +13,9 @@ def GenerateVsTemplate( project, projectRoot, toolsRoot, avrGcc ):
     with open( str(templatePath), "r") as fr:
         data = fr.read()
         t = string.Template(data)
-        proj = t.safe_substitute(project = project, sources = clCompileList, avrGcc = avrGcc, uuid_ = str(uuid.uuid1()))
+        proj = t.safe_substitute(project = project, sources = clCompileList, avrGcc = avrGcc, uuid_ = str(uuid.uuid1()), toolchain=toolsRoot)
         with open(str(pathlib.Path(destFile)), "w") as fw:
             fw.write(proj)
-
 
 if __name__ == '__main__':
     project = os.environ['Project']
