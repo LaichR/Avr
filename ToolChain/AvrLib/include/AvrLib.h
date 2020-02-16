@@ -1,8 +1,8 @@
-/*
- * HelloWorldTypes.h
+/***
+ * AvrLib.h
  *
- * Created: 12.11.2019 09:29:58
- *  Author: rolfl
+ * Supporting functions for the course ICT M242
+ *
  */
 
 
