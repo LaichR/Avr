@@ -75,11 +75,12 @@ def RewriteTrace( startToken, tokenizer, f ):
         return sum, arguments
 
     def WriteTraceArg( x, y, f):
-        argCast = {8:'unint8_t', 16: 'uint16_t', 32: 'uint32_t'}
+        argCast = {8:'uint8_t', 16: 'uint16_t', 32: 'uint32_t'}
+        cast = argCast[x]
         while x > 8:
-            f.write( "(uint8_t)(({0})({1})>>{2}),".format(argCast[x], y.strip(), x-8))
+            f.write( "(uint8_t)(({0})({1})>>{2}),".format(cast, y.strip(), x-8))
             x-=8
-        f.write("(uint8_t)((uint8_t){0})".format(y.strip()))
+        f.write("(uint8_t)(({0}){1})".format(cast, y.strip()))
 
     global __traceInfo
 
@@ -103,7 +104,7 @@ def RewriteTrace( startToken, tokenizer, f ):
                 traceArgTokens.append( functools.reduce(lambda x, y: x + y, singleArg, '') )
                 singleArg.clear()
         elif t.Id == ClangToken.LPar:
-            nestring += 1
+            nesting += 1
         elif t.Id == ClangToken.RPar:
             nesting -= 1
             if nesting == 0:

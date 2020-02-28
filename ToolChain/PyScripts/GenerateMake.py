@@ -16,7 +16,7 @@ elfLinkerTemplate = """
 $(OUT_FILE_PATH): $(OBJS) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 \t@echo Building target: $@
 \t@echo Invoking  AVR\\GNU Linker : 5.4.0
-\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe -o$(OUT_FILE_PATH) $(OBJS_AS_ARGS) $(LIB_DEP)  -Wl,-Map="$(ProjectBuild)\\$(Project).map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib"
+\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe -o$(OUT_FILE_PATH) $(OBJS_AS_ARGS) $(LIB_DEP) -Wl,-Map="$(ProjectBuild)\\$(Project).map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib"
 \t@echo Finished building target: $@
 \t$(AVR_TOOLS_PATH)\\bin\\avr-objcopy.exe -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures  "$(ProjectBuild)\\$(Project).elf" "$(ProjectBuild)\\$(Project).hex"
 \t$(AVR_TOOLS_PATH)\\bin\\avr-objcopy.exe -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "$(ProjectBuild)\\$(Project).elf" "$(ProjectBuild)\\$(Project).eep" || exit 0
@@ -37,7 +37,7 @@ compileSrcTemplate = """
 $objectFile: $sourceFile
 \t@echo Building file: $<
 \t@echo Invoking: AVR\\GNU C Compiler : 5.4.0
-\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I "$(AVR_LIB_PATH)\\include" -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c -std=gnu99 -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
+\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe $lang $langSpec -Werror -funsigned-char -funsigned-bitfields -DDEBUG  -I "$(AVR_LIB_PATH)\\include" -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c  -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
 \t@echo Finished building: $<
 """
 
@@ -123,24 +123,35 @@ def GenerateMake( inputDir, outputDir, toolsRoot, linkerStage = 'elf'):
 
     def FillCompilerTemplate(dest, source):
         print ( "compile {0} => {1}".format(source, dest))
+        langSpec = ""
+        lang = ""
+        sourcePath = pathlib.Path( source )
+        if sourcePath.suffix == '.c':
+            langSpec = "-std=gnu99"
+            lang = "-x c"
         m = {
+        'lang': lang,
+        'langSpec': langSpec,
         'objectFile': str(dest),
         'sourceFile': str(source) }
         t = string.Template(compileSrcTemplate)
         return t.safe_substitute(m)
 
     p = pathlib.Path(inputDir)
-    sources = [x  for x in p.iterdir() if x.suffix == '.c']
+    print( inputDir )
+    print("********************************")
+    sources = [x  for x in p.iterdir() if x.suffix == ('.c')]
     print ( sources )
     Preprocess.InitPreprocessor([], [])
     for s in sources:
         Preprocess.Rewrite(str(s), outputDir)
     Preprocess.DumpTraceRecords(outputDir)
-    asm = p.glob('**\\*.s')
-
-    ppSourceList = MakeFileList(sources, outputDir, 'c')
+    asmSources =  [x  for x in p.iterdir() if x.suffix == ('.s')]
+    asmSourceList = list(map( str, asmSources))
+    print( asmSources )
+    ppSourceList = MakeFileList(sources, outputDir, 'c') + asmSourceList
     print (ppSourceList)
-    objectList = MakeFileList(sources, outputDir, 'o')
+    objectList = MakeFileList(sources + asmSources, outputDir, 'o')
     print ( objectList )
     flashTarget = ''
 
