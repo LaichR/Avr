@@ -58,6 +58,7 @@ def InitPreprocessor(appInclues, sysIncludes):
 
 def DumpToken( token, f ):
     for ch in token.LeadingWhiteSpace:
+        if ch == "\r": continue
         f.write( ch )
     f.write( token.TokenString )
 
