@@ -4,11 +4,18 @@
  * Created: 12.11.2019 09:12:23
  *  Author: rolfl
 */
+
+//#define __AVR_ATmega328P__
+
 #include <string.h>
 #include <inttypes.h>
+//#define __AVR_ATmega328P__
+
 #include <avr/io.h>
+#include <Atmega328P.h>
 #include <avr/interrupt.h>
 #include "AvrLib.h"
+#include <RegisterAccess.h>
 
 /**************************************************************************/
 /*                global variables                                        */
@@ -54,7 +61,7 @@ Bool GetMessage(Message* msg);
 
 void HandleMessage(char receivedData);
 void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen);
-
+void Usart_PutShort(uint16_t value);
 
 /**************************************************************************/
 /*                function implementations                                */
@@ -86,6 +93,23 @@ void InitializeStateEventFramework(void)
 		}
 	}
 }
+
+void EnterAtomic(void)
+{
+	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
+	_enterAtomicNesting++;
+}
+
+void LeaveAtomic(void)
+{
+	_enterAtomicNesting--;
+	if (_enterAtomicNesting == 0)
+	{
+		sei();
+	}
+}
+
+
 
 void HandleMessage(char receivedData)
 {
@@ -131,21 +155,6 @@ void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
 	}
 }
 
-
-void EnterAtomic(void)
-{
-	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
-	_enterAtomicNesting++;
-}
-
-void LeaveAtomic(void)
-{
-	_enterAtomicNesting--;
-	if (_enterAtomicNesting == 0)
-	{
-		sei();
-	}
-}
 
 void SetState(Fsm* fsm, StateHandler handler)
 {
@@ -238,9 +247,61 @@ Bool GetMessage(Message* msg)
 	return False;
 }
 
+#ifdef __AVR_ATmega328P__
+
+#ifndef F_CPU
+#define F_CPU 16000000
+#endif
+
+void Usart_Init(uint32_t baudrate)
+{
+	/*Set baud rate */
+	Usart.UBBR = (uint16_t)(F_CPU/16/baudrate -1);
+
+	/*Enable receiver and transmitter */
+	SetReg(Usart.UCSRB, (UCSRB_RXEN, 1), (UCSRB_TXEN, 1));
+
+	/* Set frame format: 8data, 2stop bit; work in  */
+	SetReg(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
+
+}
+
+void Usart_PutChar(char ch)
+{
+	/* Wait for empty transmit buffer */
+	while (!(Usart.UCSRA & UCSRA_UDRE_mask));
+	/* Put data into buffer, sends the data */
+	Usart.UDR = ch;
+}
+
+void AllowUartRx(void)
+{
+	Usart.UCSRB |= UCSRB_RXCIEN_mask;
+}
+
+void DisallowUartRx(void)
+{
+	Usart.UCSRB &= ~ UCSRB_RXCIEN_mask;
+}
 
 
-void Usart_Init(void)
+ISR(USART_RX_vect)
+{
+	while (Usart.UCSRA & UCSRA_RXC_mask)
+	{
+		char receivedChar = Usart.UDR;
+		uint8_t nextInput = (USART_rxBufferIn + 1) % USART_RX_BUFFER_SIZE;
+		if ((nextInput) != USART_rxBufferOut)
+		{
+			USART_rxBuffer[USART_rxBufferIn] = receivedChar;
+			USART_rxBufferIn = nextInput;
+		}
+	}
+}
+
+#else
+
+void Usart_Init(uint32_t baudrate) //tbd fix this for atmega32!
 {
 
 	UBRRH = 0;
@@ -261,8 +322,45 @@ void DisallowUartRx(void)
 	UCSRB &= ~(1<<RXCIE);
 }
 
-void Usart_PutShort(uint16_t value);
 
+ISR(USART_RXC_vect)
+{
+
+	while (UCSRA & (1 << RXC))
+	{
+		char receivedChar = UDR;
+		uint8_t nextInput = (USART_rxBufferIn + 1) % USART_RX_BUFFER_SIZE;
+		if ((nextInput) != USART_rxBufferOut)
+		{
+			USART_rxBuffer[USART_rxBufferIn] = receivedChar;
+			USART_rxBufferIn = nextInput;
+		}
+	}
+}
+
+void Usart_PutChar(char ch)
+{
+	UDR = ch;
+	while (!(UCSRA & (1 << UDRE)));
+}
+
+void Usart_PutShort(uint16_t val)
+{
+	UDR = val >> 8;
+	while (!(UCSRA & (1 << UDRE)));
+	UDR = val & 0xFF;
+	while (!(UCSRA & (1 << UDRE)));
+}
+
+#endif
+
+
+
+void Usart_PutShort(uint16_t val)
+{
+	Usart_PutChar(val >> 8);
+	Usart_PutChar(val & 0xFF);
+}
 
 void Usart_TraceN(uint16_t id, const uint8_t* pVal, int8_t len)
 {
@@ -306,32 +404,8 @@ void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t
 	Usart_TraceN(id, buffer, 4);
 }
 
-void Usart_PutChar( char ch)
-{
-	UDR = ch;
-	while ( !( UCSRA & (1<<UDRE)) );
-}
-
-void Usart_PutShort( uint16_t val)
-{
-	UDR = val >> 8;
-	while ( !( UCSRA & (1<<UDRE)) );
-	UDR = val & 0xFF;
-	while ( !( UCSRA & (1<<UDRE)) );
-}
 
 
-ISR(USART_RXC_vect)
-{
 
-	while(UCSRA&(1<<RXC))
-	{
-		char receivedChar = UDR;
-		uint8_t nextInput = (USART_rxBufferIn + 1)%USART_RX_BUFFER_SIZE;
-		if( (nextInput) != USART_rxBufferOut )
-		{
-			USART_rxBuffer[USART_rxBufferIn] = receivedChar;
-			USART_rxBufferIn = nextInput;
-		}
-	}
-}
+
+

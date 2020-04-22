@@ -1,10 +1,20 @@
-import pathlib, os, sys, string, uuid
+import pathlib, os, sys, string, uuid, json
 
 srcItemTemplate = """
     <ClCompile Include="$filePath"/>"""
 
 def GenerateVsTemplate( project, projectRoot, toolsRoot, avrGcc ):
     destPath = pathlib.Path(projectRoot);
+
+    targetConfigs = {}
+    configPath = pathlib.Path(toolsRoot) / "Config" / "TargetConfig.json"
+
+    with open( str(configPath), "r" ) as f:
+        targetConfigs = json.load(f)
+
+    hardwarePlatform = "__AVR_DEV_LIB_NAME__=m32"
+    if targetConfigs['target'] == "atmega328":
+        hardwarePlatform = "__AVR_ATmega328P__=1"
     destFile = destPath / "{0}.vcxproj".format(project)
     sources = [ x.name for x in destPath.iterdir() if x.suffix == ".c"]
     srcItemTemplateInstance = string.Template(srcItemTemplate)
@@ -13,7 +23,7 @@ def GenerateVsTemplate( project, projectRoot, toolsRoot, avrGcc ):
     with open( str(templatePath), "r") as fr:
         data = fr.read()
         t = string.Template(data)
-        proj = t.safe_substitute(project = project, sources = clCompileList, avrGcc = avrGcc, uuid_ = str(uuid.uuid1()), toolchain=toolsRoot)
+        proj = t.safe_substitute(project = project, sources = clCompileList, avrGcc = avrGcc, uuid_ = str(uuid.uuid1()), toolchain=toolsRoot, HardwarePlatform=hardwarePlatform)
         with open(str(pathlib.Path(destFile)), "w") as fw:
             fw.write(proj)
 

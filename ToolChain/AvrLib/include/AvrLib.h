@@ -139,7 +139,7 @@ Bool DispatchEvent(void);
 /**
 * @brief initialize port D to use the uart
 */
-void Usart_Init(void);
+void Usart_Init(uint32_t baudrate);
 
 /**
 * Don't bother about these implementations; you should not use them directly;

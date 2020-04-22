@@ -40,18 +40,18 @@
 
 
 // die nachfolgenden zwei macros entsprechen der Musterlösung für die Übungen
-#define ReadRegister( reg, width, pos)	((reg & BitMask(width,pos))>>pos)
+#define ReadReg( reg, width, pos)	((reg & BitMask(width,pos))>>pos)
 
 
 
-#define ModifyRegister( reg, width, pos, value)    reg = (((reg)&~BitMask(width, pos))|((value<<pos)&BitMask(width, pos )))
+#define ModifyReg( reg, width, pos, value)    reg = (((reg)&~BitMask(width, pos))|((value<<pos)&BitMask(width, pos )))
 
-#define ReadReg(reg, field ) ReadRegister( reg, concat(field,width), concat(field,pos))
+#define ReadRegister(reg, field ) ReadRegister( reg, concat(field,width), concat(field,pos))
 
-#define SetReg(reg, ... )	__setReg( reg, OR(GetValue(__VA_ARGS__)))
+#define SetRegister(reg, ... )	__setReg( reg, OR(GetValue(__VA_ARGS__)))
 #define __setReg( reg, values )	reg = (uint8_t)(values);
 
-#define UpdateReg( reg, ... ) __updateReg(reg, OR(GetBitmask(__VA_ARGS__)), OR(GetValue(__VA_ARGS__)))
+#define UpdateRegister( reg, ... ) __updateReg(reg, OR(GetBitmask(__VA_ARGS__)), OR(GetValue(__VA_ARGS__)))
 #define __updateReg(reg, bitmask, values ) reg = (uint8_t)(((reg)&~(bitmask)) |((bitmask)&(values)))
 
 
@@ -75,62 +75,6 @@
 #define GetBitmask_5(field1, field2, field3, field4, field5 ) GetBitmask_1(field1), GetBitmask_4(field2, field3, field4, field5)
 #define GetBitmask_6(field1, field2, field3, field4, field5, field6 ) GetBitmask_1(field1), GetBitmask_5(field2, field2, field3, field4, field5, field6)
 #define GetBitmask_7(field1, field2, field3, field4, field5, field6, field7 ) GetBitmask_1(field1), GetBitmask_6(field2, field2, field3, field4, field5, field6, field7)
-
-
-
-
-/**
-* now comes the real hardware description
-*/
-// fields of port
-// data direction
-
-#define DdrInput 0	
-#define DdrOutput 1
-#define DdrAllInput 0
-#define DdrAllOutput 0xFF
-#define IoAllHigh 0xFF
-#define IoAllLow  0xFF
-
-#define DataDirection(port) concat(DDR,port)
-
-// pin descriptions; this is trivial but i want to be consistent!
-#define Pin0_width 1
-#define Pin0_pos 0
-
-#define Pin1_width 1
-#define Pin1_pos 1
-
-#define Pin2_width 1
-#define Pin2_pos 2
-
-#define Pin3_width 1
-#define Pin3_pos 3
-
-#define Pin4_width 1
-#define Pin4_pos 4
-
-#define Pin5_width 1
-#define Pin5_pos 5
-
-#define Pin6_width 1
-#define Pin6_pos 6
-
-#define Pin7_width 1
-#define Pin7_pos 7
-
-#define McuControlReg MCUCR
-
-#define SleepEnable_width 1
-#define SleepEnable_pos 7
-
-#define Int0SensControl_width 2
-#define Int0SensControl_pos 0
-#define Int1SensControl_width 2
-#define Int1SensControl_pos 2
-#define SleepMode_width 3
-#define SleepMode_pos 4
-
 
 
 #endif

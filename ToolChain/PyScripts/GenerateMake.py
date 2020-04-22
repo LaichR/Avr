@@ -37,7 +37,7 @@ compileSrcTemplate = """
 $objectFile: $sourceFile
 \t@echo Building file: $<
 \t@echo Invoking: AVR\\GNU C Compiler : 5.4.0
-\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe $lang $langSpec -Werror -funsigned-char -funsigned-bitfields -DDEBUG  -I "$(AVR_LIB_PATH)\\include" -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c  -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
+\t$(AVR_TOOLS_PATH)\\bin\\avr-gcc.exe $lang $langSpec -Werror -funsigned-char -funsigned-bitfields -DDEBUG -D$(AVR_FAMILY) -I "$(AVR_LIB_PATH)\\include" -I"$(AVR_TOOLS_PATH)\\avr\\include" -I"$(ProjectRoot)"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=$(MMCU) -B "$(AVR_TOOLS_PATH)\\avr\\Lib" -c  -save-temps -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
 \t@echo Finished building: $<
 """
 
@@ -60,6 +60,7 @@ EXECUTABLES :=
 OUT_FILE_PATH := $(ProjectBuild)\\$(Project).$extension
 AVR_TOOLS_PATH := $(AvrGcc)
 AVR_LIB_PATH := $(ToolsRoot)\\AvrLib
+AVR_FAMILY := $AvrFamily
 QUOTE := "
 OUTPUT_FILE_DEP:=
 LIB_DEP:=
@@ -78,7 +79,7 @@ C_DEPS +=  $cDependencies
 
 C_DEPS_AS_ARGS +=  $cDependencies
 
-LIB_DEP+= $(AVR_LIB_PATH)\\lib\\AvrLib.a
+LIB_DEP+= $(AVR_LIB_PATH)\\$AvrFamilyPath\\AvrLib.a
 
 LINKER_SCRIPT_DEP+=
 
@@ -161,9 +162,15 @@ def GenerateMake( inputDir, outputDir, toolsRoot, linkerStage = 'elf'):
             port=targetConfigs['port'],
             device = targetConfigs['device'])
 
+    device = targetConfigs['device']
+    AvrFamily = '__AVR_DEV_LIB_NAME__={0}'.format(device)
+    if device == 'm328p':
+        AvrFamily = '__AVR_ATmega328P__=1'
     replaceMap = {
         'linkerStage': eval("{0}LinkerTemplate".format(linkerStage)),
         'cSources': " ".join( map(str, sources ) ),
+        'AvrFamily': AvrFamily,
+        'AvrFamilyPath': targetConfigs['target'],
         'asmSources': "",
         'ToolsRoot' : toolsRoot,
         'ppSources': " ".join( ppSourceList ),
