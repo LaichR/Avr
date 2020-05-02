@@ -3,7 +3,8 @@ if [%1] == [] (echo [41m** no GitRoot specified ** [0m ) & (goto :EOF)
 set GitRoot=%1
 if [%2] == [] (echo [41m** no Project specified ** [0m ) & (goto :EOF)
 set Project=%2
-if [%3] == [] ProjectRootFolder=GitRoot else ProjectRootFolder=%3
+
+if [%3] == [] (set ProjectRootFolder=%GitRoot%) else (set ProjectRootFolder=%3)
  
 set ProjectRoot=%ProjectRootFolder%\%Project%
 set ProjectBuild=%ProjectRoot%\Build
