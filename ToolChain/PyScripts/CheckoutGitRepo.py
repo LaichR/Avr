@@ -26,10 +26,17 @@ def GitCloneOrUpdateRepo(rootDir, folderName, repoName, repo ):
     p = pathlib.Path(rootDir) / folderName
     if not p.exists():
         os.makedirs(str(p))
-        subprocess.run("git clone {0} {1}".format(repo, repoName), capture_output=True, cwd=str(p) )
+        stat = subprocess.run("git clone {0} {1}".format(repo, repoName), capture_output=True, cwd=str(p) )
+
     else:
-        p = p / repoName
-        subprocess.run("git pull origin master", cwd=str(p))
+        pr = p / repoName
+        if not pr.exists():
+            print( "clone repo!!")
+            stat = subprocess.run("git clone {0} {1}".format(repo, repoName), capture_output=True, cwd=str(p) )
+            print( stat )
+        else:
+            stat = subprocess.run("git pull origin master", cwd=str(pr))
+    stat.check_returncode()
 
 
 def GenerateBatchFile(toolsRoot, projectRoot):
@@ -43,7 +50,7 @@ def GenerateBatchFile(toolsRoot, projectRoot):
 
 def BuildProject( rootDir, folderName, projectName ):
     toolsRoot = pathlib.Path( rootDir ) / "AVR" / "ToolChain"
-    projectRoot = pathlib.Path(rootDir) / folderName / projectName
+    projectRoot = pathlib.Path(rootDir) / folderName / "M242" / projectName
     projectBuild = projectRoot / "Build"
     if not projectBuild.exists():
         os.makedirs(str(projectBuild))
