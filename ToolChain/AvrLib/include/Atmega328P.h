@@ -42,6 +42,55 @@
 #define ISR_SpmReadyInt()	 ISR( __vector_25 )
 
 /**
+* bitfield PRADC
+*/
+#define PRR_PRADC_mask 0x01
+#define PRR_PRADC_pos 0
+#define PRR_PRADC_width 1
+
+/**
+* bitfield PRUSAR
+*/
+#define PRR_PRUSAR_mask 0x02
+#define PRR_PRUSAR_pos 1
+#define PRR_PRUSAR_width 1
+
+/**
+* bitfield PRSPI
+*/
+#define PRR_PRSPI_mask 0x04
+#define PRR_PRSPI_pos 2
+#define PRR_PRSPI_width 1
+
+/**
+* bitfield PRTIM1
+*/
+#define PRR_PRTIM1_mask 0x08
+#define PRR_PRTIM1_pos 3
+#define PRR_PRTIM1_width 1
+
+/**
+* bitfield PRTIM0
+*/
+#define PRR_PRTIM0_mask 0x20
+#define PRR_PRTIM0_pos 5
+#define PRR_PRTIM0_width 1
+
+/**
+* bitfield PRTIM2
+*/
+#define PRR_PRTIM2_mask 0x40
+#define PRR_PRTIM2_pos 6
+#define PRR_PRTIM2_width 1
+
+/**
+* bitfield PRTWI
+*/
+#define PRR_PRTWI_mask 0x80
+#define PRR_PRTWI_pos 7
+#define PRR_PRTWI_width 1
+
+/**
 * bitfield SE
 */
 #define SMCR_SE_mask 0x01
@@ -572,6 +621,13 @@ typedef enum
 #define UBBR_UBRR_pos 0
 #define UBBR_UBRR_width 12
 
+
+/**
+* 
+*       Analog digital converter
+*       \see{http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf#G1202563}
+*     
+*/
 typedef struct ADC_T_tag
 {
     volatile uint16_t Data;	///< 10 bit data value of the conversion result
@@ -718,6 +774,13 @@ typedef enum
     MuxGnd=15,
 } AnalogChannelSelection;
 
+typedef enum
+{
+    ExternalAREF=0,
+    InternalVCC=1,
+    Internal1_1=3,
+} ReferenceSelection;
+
 /**
 * bitfield ADC0D
 */
@@ -818,6 +881,7 @@ typedef enum
 #define Tcnt0 (*((volatile TCNT8_T*)0x00000044))
 #define Smcr (*((volatile uint8_t*)0x00000053))
 #define Mcucr (*((volatile uint8_t*)0x00000055))
+#define Prr (*((volatile uint8_t*)0x00000064))
 #define Timsk0 (*((volatile uint8_t*)0x0000006E))
 #define Timsk1 (*((volatile uint8_t*)0x0000006F))
 #define Timsk2 (*((volatile uint8_t*)0x00000070))

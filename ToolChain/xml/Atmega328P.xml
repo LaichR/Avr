@@ -34,6 +34,31 @@
     <Enum Name="ISR_SpmReadyInt" Value="25"/>
   </TypeDefinition>
 
+  <TypeDefinition Name="PRR_T" xsi:type="IntegerType" Signed="false" Size="1">
+    <Description>Power reduction regisgter descrption</Description>
+    <Stereotype>HardwareRegister</Stereotype>
+    <Bitfield Name="PRADC" Position="0" Width="1">
+      <Description>Power reduction for analog digital converter</Description>
+    </Bitfield>
+    <Bitfield Name="PRUSAR" Position="1" Width="1">
+      <Description>Power reduction for usart</Description>
+    </Bitfield>
+    <Bitfield Name="PRSPI" Position="2" Width="1">
+      <Description>Power reduction SPI</Description>
+    </Bitfield>
+    <Bitfield Name="PRTIM1" Position="3" Width="1">
+      <Description>Power reduction timer 1</Description>
+    </Bitfield>
+    <Bitfield Name="PRTIM0" Position="5" Width="1">
+      <Description>Power reduction timer 0</Description>
+    </Bitfield>
+    <Bitfield Name="PRTIM2" Position="6" Width="1">
+      <Description>Power reduction timer 2</Description>
+    </Bitfield>
+    <Bitfield Name="PRTWI" Position="7" Width="1">
+      <Description>Power reduction two wire interface</Description>
+    </Bitfield>
+  </TypeDefinition>
 
   <TypeDefinition Name="SMCR_T" xsi:type="IntegerType" Signed="false" Size="1">
     <Description>Sleep mode control register</Description>
@@ -387,6 +412,10 @@
 
 
   <TypeDefinition Name="ADC_T" xsi:type="StructType">
+    <Description>
+      Analog digital converter
+      \see{http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf#G1202563}
+    </Description>
     <Stereotype>HardwarePeripheral</Stereotype>
     <TypeDefinition Name="ADCSRA_T" xsi:type="IntegerType" Signed="false" Size="1">
       <Bitfield Name="ADPS" Position="0" Width="3">
@@ -463,6 +492,11 @@
       </Bitfield>
       <Bitfield Name="REFS" Position="6" Width="2">
         <Description>Reference selection</Description>
+        <ValueSet Name="ReferenceSelection">
+          <Enum Name="ExternalAREF" Value="0"/>
+          <Enum Name="InternalVCC" Value ="1"/>
+          <Enum Name="Internal1_1" Value="3"/>
+        </ValueSet>
       </Bitfield>
     </TypeDefinition>
     <TypeDefinition Name="DIDR0_T" xsi:type="IntegerType" Signed="false" Size="1">
@@ -561,7 +595,7 @@
   </MemorySection>
 
   <MemorySection  Name="IOMEM_High" Address="0x00" ByteOrder="LittleEndian" Chip="M328">
-
+    <Symbol Name="Prr" Offset="0x64" Type="PRR_T"/>
     <Symbol Name="Timsk0" Offset="0x6E" Type="TIMSK_T"/>
     <Symbol Name="Timsk1" Offset="0x6F" Type="TIMSK_T"/>
     <Symbol Name="Timsk2" Offset="0x70" Type="TIMSK_T"/>
