@@ -176,6 +176,9 @@
         </Description>
         <ValueSet Name="ClkSelect">
           <Description>This enumerate defines the values for 8bit and 16 bit timer counter blocks
+          Note: The values prefixed with CS_ are valid for all timer counter blocks
+          The values prefixed with T1 are valid for Tcnt0 and Tcnt1
+          The values prefixed with T2 are valid for Tcnt2
           </Description>
           <Enum Name ="CS_Off" Value="0"/>
           <Enum Name ="CS_Div1" Value="1"/>
@@ -240,7 +243,7 @@
       <Bitfield Name="CS" Position="0" Width="3">
         <Description>Clock selection; the same values as for CS in timer 0 are applicable!</Description>
       </Bitfield>
-      <Bitfield Name="WGM" Position="4" Width="2">
+      <Bitfield Name="WGM" Position="3" Width="2">
         <Description>Upper bits of wave generation mode; is combined with WGM in TCCRA1 register</Description>
       </Bitfield>
       <Bitfield Name="ICES1" Position="6" Width="1">
@@ -280,7 +283,7 @@
     <Field Name="OCRA" FieldType="uint16_t">
       <Description>Output compare register A</Description>
     </Field>
-    <Field Name="ORCB" FieldType="uint16_t">
+    <Field Name="OCRB" FieldType="uint16_t">
       <Description>Output compare register B</Description>
     </Field>
   </TypeDefinition>

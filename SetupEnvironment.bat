@@ -17,5 +17,6 @@ if not exist "%ProjectRoot%\" mkdir "%ProjectRoot%"
 if not exist "%ProjectRoot%\Build\" mkdir "%ProjectRoot%\Build"
 if not exist "%ProjectRoot%\make.bat" copy "%Batch%\make.bat" "%ProjectRoot%"
 if not exist "%ProjectRoot%\%Project%.vcxproj" python.exe "%PyScripts%\GenerateVsProject.py"
+if not exist "%ProjectRoot%\MakeAndRun.bat" python.exe "%PyScripts%\GenerateMakeAndRun.py"
 cd "%ProjectRoot%"
 call cmd.exe /K echo  [32m **  environment set to %Project% ** [0m

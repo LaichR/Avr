@@ -9,7 +9,6 @@
 
 #include <string.h>
 #include <inttypes.h>
-//#define __AVR_ATmega328P__
 
 #include <avr/io.h>
 #include <Atmega328P.h>
@@ -24,10 +23,18 @@
 static uint8_t _enterAtomicNesting = 0;
 
 #define USART_RX_BUFFER_SIZE 32
+#define USART_TX_BUFFER_SIZE 32
 
-char USART_rxBuffer[USART_RX_BUFFER_SIZE];
+static uint8_t USART_rxBuffer[USART_RX_BUFFER_SIZE];
+static uint8_t USART_txBuffer[USART_TX_BUFFER_SIZE];
+
+#define FilledTxEntries() (((USART_txBufferIn + USART_TX_BUFFER_SIZE) - USART_txBufferOut)%USART_TX_BUFFER_SIZE)
+
 static volatile uint8_t USART_rxBufferIn = 0;
 static volatile uint8_t USART_rxBufferOut = 0;
+
+static volatile uint8_t USART_txBufferIn = 0;
+static volatile uint8_t USART_txBufferOut = 0;
 
 static AvrMessage _avrMessagePool[8];
 static uint8_t    _avrMsgIndex[8] = { 0,1,2,3,4,5,6,7 };
@@ -259,19 +266,37 @@ void Usart_Init(uint32_t baudrate)
 	Usart.UBBR = (uint16_t)(F_CPU/16/baudrate -1);
 
 	/*Enable receiver and transmitter */
-	SetReg(Usart.UCSRB, (UCSRB_RXEN, 1), (UCSRB_TXEN, 1));
+	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1), (UCSRB_TXEN, 1));
 
 	/* Set frame format: 8data, 2stop bit; work in  */
-	SetReg(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
-
+	SetRegister(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
 }
 
 void Usart_PutChar(char ch)
 {
-	/* Wait for empty transmit buffer */
-	while (!(Usart.UCSRA & UCSRA_UDRE_mask));
-	/* Put data into buffer, sends the data */
-	Usart.UDR = ch;
+	EnterAtomic();
+	uint8_t nextIn = 0;
+	nextIn = (USART_txBufferIn + 1) % countof(USART_txBuffer);
+	if (nextIn != USART_txBufferOut)
+	{
+		USART_txBuffer[USART_txBufferIn] = ch;
+		USART_txBufferIn = nextIn;
+		UpdateRegister(Usart.UCSRB, (UCSRB_UDRIEN, True));
+	}
+	LeaveAtomic();
+}
+ 
+ISR_UsartDataRegEmpty()
+{
+	if (USART_txBufferOut != USART_txBufferIn)
+	{
+		Usart.UDR = USART_txBuffer[USART_txBufferOut++];
+		USART_txBufferOut %= countof(USART_txBuffer);
+	}
+	else
+	{
+		UpdateRegister(Usart.UCSRB, (UCSRB_UDRIEN, False));
+	}
 }
 
 void AllowUartRx(void)
@@ -308,7 +333,7 @@ void Usart_Init(uint32_t baudrate) //tbd fix this for atmega32!
 	//UBRRL = 12;							// initialize baud rate = 38400 at 8MHZ
 	UBRRL = 5;								// initialize baud rate 34800 at 3.68MHz
 	UCSRC = 0x86;							// 8 data bits, 1 stop bit, not parity; docu page 162
-	UCSRB = (1<<TXEN)|(1<<RXEN)|(1<<RXCIE);	// enabe tx, rx and rx interrupts
+	UCSRB = (1<<TXEN)|(1<<RXEN)|(1<<RXCIE)|(1<<TXCIE);	// enabe tx, rx and rx, tx interrupts
 	sei();									// enable interrupts
 }
 
@@ -344,13 +369,6 @@ void Usart_PutChar(char ch)
 	while (!(UCSRA & (1 << UDRE)));
 }
 
-void Usart_PutShort(uint16_t val)
-{
-	UDR = val >> 8;
-	while (!(UCSRA & (1 << UDRE)));
-	UDR = val & 0xFF;
-	while (!(UCSRA & (1 << UDRE)));
-}
 
 #endif
 
@@ -365,12 +383,16 @@ void Usart_PutShort(uint16_t val)
 void Usart_TraceN(uint16_t id, const uint8_t* pVal, int8_t len)
 {
 	EnterAtomic();
-	Usart_PutChar(PacketType_TraceMessage);
-	Usart_PutChar(PacketType_TraceMassagePadLen|len);
-	Usart_PutShort(id);
-	while ( len-- > 0)
+	// avoid partial messages!
+	if ((USART_TX_BUFFER_SIZE - 1 - FilledTxEntries()) >= (len + 4))
 	{
-		Usart_PutChar(*pVal++);
+		Usart_PutChar(PacketType_TraceMessage);
+			Usart_PutChar(PacketType_TraceMassagePadLen | len);
+			Usart_PutShort(id);
+			while (len-- > 0)
+			{
+				Usart_PutChar(*pVal++);
+			}
 	}
 	LeaveAtomic();
 }

@@ -35,6 +35,7 @@ def GitCloneOrUpdateRepo(rootDir, folderName, repoName, repo ):
             stat = subprocess.run("git clone {0} {1}".format(repo, repoName), capture_output=True, cwd=str(p) )
             print( stat )
         else:
+            stat = subprocess.run("git restore *", cwd=str(pr))
             stat = subprocess.run("git pull origin master", cwd=str(pr))
     stat.check_returncode()
 
