@@ -317,6 +317,9 @@ typedef enum
 
 /**
 * This enumerate defines the values for 8bit and 16 bit timer counter blocks
+*           Note: The values prefixed with CS_ are valid for all timer counter blocks
+*           The values prefixed with T1 are valid for Tcnt0 and Tcnt1
+*           The values prefixed with T2 are valid for Tcnt2
 *           
 */
 typedef enum
@@ -351,7 +354,7 @@ typedef struct TCNT16_T_tag
     volatile uint16_t TCNT;	///< Counter register
     volatile uint16_t ICR;	///< Input capture register
     volatile uint16_t OCRA;	///< Output compare register A
-    volatile uint16_t ORCB;	///< Output compare register B
+    volatile uint16_t OCRB;	///< Output compare register B
 } TCNT16_T;
 /**
 * bitfield WGM
@@ -384,8 +387,8 @@ typedef struct TCNT16_T_tag
 /**
 * bitfield WGM
 */
-#define TCCRB1_WGM_mask 0x30
-#define TCCRB1_WGM_pos 4
+#define TCCRB1_WGM_mask 0x18
+#define TCCRB1_WGM_pos 3
 #define TCCRB1_WGM_width 2
 
 /**
