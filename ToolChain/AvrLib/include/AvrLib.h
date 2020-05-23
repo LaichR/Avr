@@ -30,11 +30,15 @@ typedef enum
 
 typedef enum
 {
-    Priority_High,
-    Priority_Medium,
-    Priority_Low,
-    Priority_VeryLow
-} Priority;
+    Priority_0, ///<small numbers have low priority
+    Priority_1,
+    Priority_2,
+    Priority_3,
+    Priority_4,
+    Priority_5,    
+    Priority_6,
+    Priority_7,
+} Priority_T;
 
 
 typedef enum
@@ -42,8 +46,9 @@ typedef enum
 	 PacketType_Undefined = 0,
 	 PacketType_LiftSimulatorButton = 2,
 	 PacketType_TestCommand = 3,
-	 PacketType_TraceMassagePadLen = 0xA8,
-	 PacketType_TraceMessage = 0xA5,
+     PacketType_RawData = 4,
+     PacketType_TraceMassagePadLen = 0xA8,
+	 PacketType_TraceMessage = 0xA5,     
 } AvrPacketType;
 
 
@@ -51,7 +56,7 @@ typedef enum
  {
 	 AvrPacketType MsgType;
 	 uint8_t Length;
-	 uint8_t Payload[8];
+	 uint8_t Payload[12];
  }AvrMessage;
 
 
@@ -74,12 +79,20 @@ typedef enum
          };
          void* Ptr;                         ///< man kann die Parameter auch als Pointer interpretieren
      };
+     uint8_t __next;                ///< element with next priority
  }Message;
+
+
 
  /**
  * @brief Prototyp einer Zustandsfunktion
  */
  typedef void (*StateHandler)(const Message* msg);
+
+ /**
+ * @brief Prototyp eines AvrPacketHandlers
+ */
+ typedef void (*AvrMessageHandler)(const AvrMessage* msg);
 
 
  /**
@@ -97,9 +110,18 @@ typedef enum
 
 
 
+
 /**************************************************************************************/
 /*                   Funktion Prototypes                                              */
 /**************************************************************************************/
+
+/**
+* @brief Registriert einen Test handler für die Bearbeitung von Uart Inputs
+* 
+*/
+
+ void RegisterAvrMessageHander(AvrMessageHandler handler);
+
 
 /**
 * @brief Registriert eine Zustandsmaschine im Framework
