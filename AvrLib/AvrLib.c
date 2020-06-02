@@ -60,7 +60,7 @@ static Message* _root = &_messagePool[31];
 static uint8_t _messagePoolIndex[countof(_messagePool)] =
 {
 	0,1,2,3,4,5,6,7,
-	8, 9,10,11,12,13,14, 15,
+	8,9,10,11,12,13,14,15,
 	16,17,18,19,20,21,22,23,
 	24, 25, 26, 26, 28,29,30
 };
@@ -69,6 +69,8 @@ static uint8_t _qIn = countof(_messagePool)-1;
 static uint8_t _qOut = 0;
 
 void DefaultMessageHandler(const AvrMessage* msg);
+
+
 
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh);
 Bool GetMessage(Message* msg);
@@ -98,7 +100,7 @@ void InitializeStateEventFramework(void)
 
 	Usart_PutChar(0xCA);
 	Usart_PutChar(0xFE);	
-
+	
 	while (1)
 	{
 		DispatchEvent();
@@ -116,16 +118,22 @@ void InitializeStateEventFramework(void)
 
 void EnterAtomic(void)
 {
+	// in case we are in interrupt context, we must never reenable interrupts
+	//if (((SREG & 0x80) == 0) && _enterAtomicNesting == 0) return;
+	
 	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
 	_enterAtomicNesting++;
 }
 
 void LeaveAtomic(void)
 {
-	_enterAtomicNesting--;
-	if (_enterAtomicNesting == 0)
+	if (_enterAtomicNesting > 0)
 	{
-		sei();
+		_enterAtomicNesting--;
+		if (_enterAtomicNesting == 0)
+		{
+			sei();
+		}
 	}
 }
 
@@ -207,6 +215,7 @@ Bool DispatchEvent(void)
 	Message msg;
 	if (GetMessage(&msg))
 	{
+		
 		if (msg.Id & 0x80) // this was a AVR message => pass it to the messageHandler
 		{
 			uint8_t msgIndex = msg.MsgParamLow;
@@ -229,6 +238,7 @@ Bool DispatchEvent(void)
 		}
 		return True;
 	}
+	//Usart_PutChar(0xB2);
 	return False;
 }
 
@@ -238,6 +248,8 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 	//uint8_t nextMessageIn = (_qIn + 1) % (countof(_prioQueue));
 	if (_qIn == _qOut)
 	{
+		Usart_PutChar(0xDE);
+		Usart_PutChar(0xAD);
 		return; // todo: what shall be done in case a message is discarded?
 	}
 	
@@ -247,16 +259,17 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 	msg->Id = id;
 	msg->MsgParamLow = msgLow;
 	msg->MsgParamHigh = msgHigh;
-
+	
 	Message* p = _root;
+	
 	Message* q = p;
-	while (msg->Priority < p->Priority && q != _root )
+	while (msg->Priority <= p->Priority && p->__next != 31 )
 	{
 		q = p;
-		p = &_messagePool[_messagePoolIndex[p->__next]];
+		p = &_messagePool[p->__next];
 	}
 	EnterAtomic();
-	msg->__next = (p - _messagePool);
+	msg->__next = q->__next;
 	q->__next = (msg - _messagePool);
 	LeaveAtomic();
 }
@@ -265,10 +278,10 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 Bool GetMessage(Message* msg)
 {
 	Message* p = _root;
-	Message* q = &_messagePool[_messagePoolIndex[p->__next]];
+	Message* q = &_messagePool[p->__next];
 	if (p != q)
 	{
-		msg = q;
+		*msg = *q;
 		EnterAtomic();
 		_messagePoolIndex[_qIn++] = p->__next;
 		_qIn %= countof(_messagePoolIndex);
@@ -276,6 +289,14 @@ Bool GetMessage(Message* msg)
 		LeaveAtomic();
 		return True;
 	}
+	//else if (_qIn + 1 != _qOut)
+	//{
+	//	EnterAtomic();
+	//	//Usart_PutChar(0xF0); // the pool should be full; otherwise we have made a mistake!
+	//	Usart_PutChar(p->__next);
+	//	LeaveAtomic();
+
+	//}
 	return False;
 }
 
@@ -291,7 +312,7 @@ void Usart_Init(uint32_t baudrate)
 	Usart.UBBR = (uint16_t)(F_CPU/16/baudrate -1);
 
 	/*Enable receiver and transmitter */
-	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1), (UCSRB_TXEN, 1));
+	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1),(UCSRB_RXCIEN, True), (UCSRB_TXEN, 1));
 
 	/* Set frame format: 8data, 2stop bit; work in  */
 	SetRegister(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
@@ -450,6 +471,12 @@ void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t
 	uint8_t buffer[4] = {val1, val2, val3, val4};
 	Usart_TraceN(id, buffer, 4);
 }
+
+void RegisterAvrMessageHandler(AvrMessageHandler handler)
+{
+	HandleAvrMessage = handler;
+}
+
 
 void DefaultMessageHandler(const AvrMessage* msg)
 {

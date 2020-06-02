@@ -115,6 +115,15 @@ typedef enum
 /*                   Funktion Prototypes                                              */
 /**************************************************************************************/
 
+
+ /**
+ * @brief Initialize Framework
+ *
+ * The framework starts the dispatch loop and allows to receive messages
+ * from the PC
+ */
+ void InitializeStateEventFramework(void);
+
 /**
 * @brief Registriert einen Test handler für die Bearbeitung von Uart Inputs
 * 
