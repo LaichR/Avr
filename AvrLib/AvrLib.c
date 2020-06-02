@@ -20,6 +20,11 @@
 /*                global variables                                        */
 /**************************************************************************/
 
+
+
+
+Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
+
 static uint8_t _enterAtomicNesting = 0;
 
 #define USART_RX_BUFFER_SIZE 32
@@ -36,31 +41,41 @@ static volatile uint8_t USART_rxBufferOut = 0;
 static volatile uint8_t USART_txBufferIn = 0;
 static volatile uint8_t USART_txBufferOut = 0;
 
-static AvrMessage _avrMessagePool[8];
-static uint8_t    _avrMsgIndex[8] = { 0,1,2,3,4,5,6,7 };
+static AvrMessage _avrMessagePool[7];
+static uint8_t    _avrMsgIndex[8] = { 0,1,2,3,4,5,6, 0};
 static uint8_t    _avrPoolIn = countof(_avrMessagePool) - 1;
-static uint8_t    _avrPoolOut = countof(_avrMessagePool) - 1;
+static uint8_t    _avrPoolOut = 0;
+
+
 
 static Fsm _anchor = { .CurrentState = 0, .Next = &_anchor , .RxMask = 0 };
 
-static Message _highPrioQueue[4];
-static Message _midPrioQueue[8];
-static Message _lowPrioQueue[8];
-static Message _veryLowPrioQueue[16];
+static Message _messagePool[32] =
+{
+	[31] = {.__next = 31, .Priority = 16 }
+};
 
-static Message *_prioQueue[] = { _highPrioQueue, _midPrioQueue, _lowPrioQueue, _veryLowPrioQueue };
+static Message* _root = &_messagePool[31];
 
-static uint8_t _qIn[] = { 0,0,0,0 };
-static uint8_t _qOut[] = { 0,0,0,0 };
-static int8_t _nrOfEntries[] = { 0, 0, 0, 0 };
-static const uint8_t _capacity[] = { countof(_highPrioQueue), countof(_midPrioQueue),
-									  countof(_lowPrioQueue), countof(_veryLowPrioQueue) };
+static uint8_t _messagePoolIndex[countof(_messagePool)] =
+{
+	0,1,2,3,4,5,6,7,
+	8,9,10,11,12,13,14,15,
+	16,17,18,19,20,21,22,23,
+	24, 25, 26, 26, 28,29,30
+};
+
+static uint8_t _qIn = countof(_messagePool)-1;
+static uint8_t _qOut = 0;
+
+void DefaultMessageHandler(const AvrMessage* msg);
 
 
 
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh);
 Bool GetMessage(Message* msg);
 
+static AvrMessageHandler HandleAvrMessage = DefaultMessageHandler;
 
 /**************************************************************************/
 /*                private functions                                       */
@@ -85,7 +100,7 @@ void InitializeStateEventFramework(void)
 
 	Usart_PutChar(0xCA);
 	Usart_PutChar(0xFE);	
-
+	
 	while (1)
 	{
 		DispatchEvent();
@@ -103,16 +118,22 @@ void InitializeStateEventFramework(void)
 
 void EnterAtomic(void)
 {
+	// in case we are in interrupt context, we must never reenable interrupts
+	//if (((SREG & 0x80) == 0) && _enterAtomicNesting == 0) return;
+	
 	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
 	_enterAtomicNesting++;
 }
 
 void LeaveAtomic(void)
 {
-	_enterAtomicNesting--;
-	if (_enterAtomicNesting == 0)
+	if (_enterAtomicNesting > 0)
 	{
-		sei();
+		_enterAtomicNesting--;
+		if (_enterAtomicNesting == 0)
+		{
+			sei();
+		}
 	}
 }
 
@@ -158,7 +179,7 @@ void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
 		_avrMessagePool[msgIndex].MsgType = msgType;
 		_avrMessagePool[msgIndex].Length = msgLen;
 		memcpy(_avrMessagePool[msgIndex].Payload, msg, msgLen);
-		SendMessage(Priority_VeryLow, msgType | 0x80, msgIndex, 0);
+		SendMessage(Priority_0, msgType | 0x80, msgIndex, 0);
 	}
 }
 
@@ -194,63 +215,88 @@ Bool DispatchEvent(void)
 	Message msg;
 	if (GetMessage(&msg))
 	{
-		Fsm* p = _anchor.Next;
-		uint8_t prioFlag = 1 << msg.Priority;
-		while (p != &_anchor)
+		
+		if (msg.Id & 0x80) // this was a AVR message => pass it to the messageHandler
 		{
-			if ((p->RxMask & prioFlag) != 0)
-			{
-				p->CurrentState(&msg);
-			}
-			p = p->Next;
-		}
-		if (msg.Id & 0x80) // this was a AVR message
-		{
-			_avrMsgIndex[_avrPoolIn++] = msg.MsgParamLow;
+			uint8_t msgIndex = msg.MsgParamLow;
+			HandleAvrMessage(&_avrMessagePool[_avrMsgIndex[msgIndex]]);
+			_avrMsgIndex[_avrPoolIn++] = msgIndex;
 			_avrPoolIn %= countof(_avrMsgIndex);
+		}
+		else
+		{
+			Fsm* p = _anchor.Next;
+			uint8_t prioFlag = 1 << msg.Priority;
+			while (p != &_anchor)
+			{
+				if ((p->RxMask & prioFlag) != 0)
+				{
+					p->CurrentState(&msg);
+				}
+				p = p->Next;
+			}
 		}
 		return True;
 	}
+	//Usart_PutChar(0xB2);
 	return False;
 }
 
 
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 {
-	if (_capacity[prio] > _nrOfEntries[prio])
+	//uint8_t nextMessageIn = (_qIn + 1) % (countof(_prioQueue));
+	if (_qIn == _qOut)
 	{
-		EnterAtomic();
-		uint8_t index = _qIn[prio];
-		_qIn[prio] = (index + 1) % _capacity[prio];
-		Message* q = _prioQueue[prio];
-		q[index].Id = id;
-		q[index].Priority = prio;
-		q[index].MsgParamLow = msgLow;
-		q[index].MsgParamHigh = msgHigh;
-		_nrOfEntries[prio]++;
-		
-		LeaveAtomic();
+		Usart_PutChar(0xDE);
+		Usart_PutChar(0xAD);
+		return; // todo: what shall be done in case a message is discarded?
 	}
+	
+	Message* msg = &_messagePool[_messagePoolIndex[_qOut++]];
+	_qOut %= countof(_messagePool);
+	msg->Priority = prio;
+	msg->Id = id;
+	msg->MsgParamLow = msgLow;
+	msg->MsgParamHigh = msgHigh;
+	
+	Message* p = _root;
+	
+	Message* q = p;
+	while (msg->Priority <= p->Priority && p->__next != 31 )
+	{
+		q = p;
+		p = &_messagePool[p->__next];
+	}
+	EnterAtomic();
+	msg->__next = q->__next;
+	q->__next = (msg - _messagePool);
+	LeaveAtomic();
 }
 
 
 Bool GetMessage(Message* msg)
 {
-	uint8_t prio = 0;
-	for (; prio < sizeof(_nrOfEntries); prio++)
+	Message* p = _root;
+	Message* q = &_messagePool[p->__next];
+	if (p != q)
 	{
-		if (_nrOfEntries[prio] > 0)
-		{
-			EnterAtomic();
-			Message* q = _prioQueue[prio];
-			uint8_t index = _qOut[prio];
-			*msg = q[index];
-			_nrOfEntries[prio]--;
-			_qOut[prio] = (index + 1) % _capacity[prio];
-			LeaveAtomic();
-			return True;
-		}
+		*msg = *q;
+		EnterAtomic();
+		_messagePoolIndex[_qIn++] = p->__next;
+		_qIn %= countof(_messagePoolIndex);
+		p->__next = q->__next;		
+		LeaveAtomic();
+		return True;
 	}
+	//else if (_qIn + 1 != _qOut)
+	//{
+	//	EnterAtomic();
+	//	//Usart_PutChar(0xF0); // the pool should be full; otherwise we have made a mistake!
+	//	Usart_PutChar(p->__next);
+	//	LeaveAtomic();
+
+	//}
 	return False;
 }
 
@@ -266,7 +312,7 @@ void Usart_Init(uint32_t baudrate)
 	Usart.UBBR = (uint16_t)(F_CPU/16/baudrate -1);
 
 	/*Enable receiver and transmitter */
-	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1), (UCSRB_TXEN, 1));
+	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1),(UCSRB_RXCIEN, True), (UCSRB_TXEN, 1));
 
 	/* Set frame format: 8data, 2stop bit; work in  */
 	SetRegister(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
@@ -424,6 +470,17 @@ void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t
 {
 	uint8_t buffer[4] = {val1, val2, val3, val4};
 	Usart_TraceN(id, buffer, 4);
+}
+
+void RegisterAvrMessageHandler(AvrMessageHandler handler)
+{
+	HandleAvrMessage = handler;
+}
+
+
+void DefaultMessageHandler(const AvrMessage* msg)
+{
+
 }
 
 
