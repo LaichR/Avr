@@ -137,8 +137,6 @@ void LeaveAtomic(void)
 	}
 }
 
-
-
 void HandleMessage(char receivedData)
 {
 	//Usart_PutChar(0xaa);
