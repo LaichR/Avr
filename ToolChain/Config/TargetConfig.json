@@ -2,6 +2,6 @@
 	"device": "m328p", 
 	"target": "atmega328", 
 	"programmer": "arduino", 
-	"port": "com19"
+	"port": "com3"
 }
 

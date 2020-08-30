@@ -1,10 +1,8 @@
 import sys, pathlib, os, traceback, subprocess, string
 
-sys.path.append(r'C:\Users\rolfl\Documents\GIBZ\py')
-
-import StudentsInfo
-
-
+if pathlib.Path(r'C:\Users\rolfl\Documents\GIBZ\py').exists():
+    sys.path.append(r'C:\Users\rolfl\Documents\GIBZ\py')
+    import StudentsInfo
 
 
 batchFileTemplate = """
@@ -58,11 +56,6 @@ def BuildProject( rootDir, folderName, projectName ):
 
     batchFile = GenerateBatchFile(toolsRoot, projectRoot )
     subprocess.run(batchFile)
-
-
-#GitCloneOrUpdateRepo(r"e:\M242", "Lars_Voegtle", "M242", "https://github.com/laeshe1886/M242_Project")
-#BuildProject(ProjectsRoot, "Lars_Voegtle", "M242")
-
 
 
 #Send_E_Mail("test", ['rlaich@gibz.ch'], "blabla",
