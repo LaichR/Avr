@@ -1,10 +1,12 @@
 import sys, pathlib, traceback
 
-p = pathlib.Path(__file__)
+p = pathlib.Path(__file__).resolve()
 
+pyScripts = str((p.parent.parent / "PyScripts").resolve())
+print (pyScripts)
 #these paths will be used in all actions
 sys.path.append(r'C:\Users\rolfl\Documents\GIBZ\py')
-sys.path.append(str(p.parent.parent / "PyScripts"))
+sys.path.append(pyScripts)
 
 
 import StudentsInfo
@@ -42,5 +44,5 @@ for s in students.Filter(lambda x: x.GithubRepo != None):
 print( missingRepos )
 print( inaccessibleRepos )
 
-ExchangeHelpers.Send_Email("Fehlendes Git Repository!", missingRepos, noGithubRepo )
-ExchangeHelpers.Send_Email("Zugriff auf Git Repository nicht möglich!", missingRepos, noGithubRepo )
+#ExchangeHelpers.Send_Email("Fehlendes Git Repository!", missingRepos, noGithubRepo )
+#ExchangeHelpers.Send_Email("Zugriff auf Git Repository nicht möglich!", missingRepos, noGithubRepo )

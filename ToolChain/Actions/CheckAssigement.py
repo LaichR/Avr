@@ -13,7 +13,8 @@ import ExchangeHelpers
 import CheckoutGitRepo
 
 ProjectsRoot = r"e:\M242"
-CurrentAssigement = "HelloWorld"
+#CurrentAssigement = "HelloWorld"
+CurrentAssigement = "BlinkingLED1"
 schuelerInfo = r"C:\Users\rolfl\OneDrive - GIBZ\M242\Semester2020\SchuelerInfo.xlsx"
 schuelerRatings = r"C:\Users\rolfl\OneDrive - GIBZ\M242\Semester2020\M242_2020.pickle"
 
@@ -22,14 +23,14 @@ inaccessibleRepos = []
 failingBuilds = []
 
 def StudentFilter(x):
-    return x.Student.NameToIdentifier() in ["Tillo_Beffa"   ]
+    return x.Student.NameToIdentifier() in [  ]
 
 def AssignementNotYetRated(x):
     return not x.HasAssignement(CurrentAssigement)
 
 try:
     for studentRating in ratings.Filter(
-        StudentFilter ):
+        AssignementNotYetRated ):
         s = studentRating.Student
         print( "checking assignement of ", s.Name )
         try:
