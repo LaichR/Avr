@@ -81,7 +81,7 @@
     </xs:sequence>
     <xs:attribute name="Name" type="xs:string" use="required" />
     <xs:attribute name="FieldType" type="xs:string" use="required"/>
-    <xs:attribute name="Aligned" type="xs:integer" use="optional"/>
+    <xs:attribute name="Aligned" type="xs:int" use="optional"/>
   </xs:complexType>
   <xs:complexType name="StructType">
     <xs:complexContent>
@@ -122,12 +122,12 @@
                 <xs:element name="ValueSet" type="EnumType" minOccurs="0"/>
               </xs:all>
               <xs:attribute name="Name" type="xs:string" use="required" />
-              <xs:attribute name="Width" type="xs:integer" use="required" />
-              <xs:attribute name="Position" type="xs:integer" use="required"/>
+              <xs:attribute name="Width" type="xs:int" use="required" />
+              <xs:attribute name="Position" type="xs:int" use="required"/>
             </xs:complexType>
           </xs:element>
         </xs:sequence>
-        <xs:attribute name="Size" type="xs:integer" use="required">
+        <xs:attribute name="Size" type="xs:int" use="required">
           <xs:annotation>
             <xs:documentation>
               Specifies the number of bytes of this integer type
@@ -150,7 +150,7 @@
             </xs:complexType>
           </xs:element>
         </xs:sequence>
-        <xs:attribute name="Size" type="xs:integer" use="optional"/>
+        <xs:attribute name="Size" type="xs:int" use="optional"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

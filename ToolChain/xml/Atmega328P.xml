@@ -2,7 +2,7 @@
 <Unit xmlns ="http://tempuri.org/EntityDescription.xsd"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://tempuri.org/EntityDescription.xsd EntityDescription.xsd"
-      Name="IntTypes" Namespace="Types">
+      Name="AvrTypes" Namespace="Types">
   <Import LibraryOrFile="IntTypes.xml" ByReference="true" />
 
   <TypeDefinition Name="IsrDefinition_T" xsi:type="EnumType" >
@@ -35,7 +35,7 @@
   </TypeDefinition>
 
   <TypeDefinition Name="PRR_T" xsi:type="IntegerType" Signed="false" Size="1">
-    <Description>Power reduction regisgter descrption</Description>
+    <Description>Power reduction regisgter </Description>
     <Stereotype>HardwareRegister</Stereotype>
     <Bitfield Name="PRADC" Position="0" Width="1">
       <Description>Power reduction for analog digital converter</Description>
@@ -91,6 +91,34 @@
     <Bitfield Name="BODS" Position="6" Width="1"></Bitfield>
   </TypeDefinition>
 
+  <TypeDefinition Name ="EIMSK_T" xsi:type="IntegerType" Size="1" Signed="false">
+    <Description>External interrupt mask register</Description>
+    <Bitfield Name="EnInt0" Position="0" Width="1">
+      <Description>Enables the external interrupt on INT0</Description>
+    </Bitfield>
+    <Bitfield Name="EnInt1" Position="1" Width="1">
+      <Description>Enables the external interrupt on INT1</Description>
+    </Bitfield>
+  </TypeDefinition>
+  
+  <TypeDefinition Name="EICRA_T" xsi:type="IntegerType" Size="1" Signed="false">
+    <Description>External interrupt control register</Description>
+    <Stereotype>HardwareRegister</Stereotype>
+    <Bitfield Name="Isc0" Position="0" Width="2">
+      <Description>Interrupt sense contol register 0</Description>
+      <ValueSet Name="IscOptions">
+        <Description>Options for interrupt sense control</Description>
+        <Enum Name="InterruptOnLow" Value="0"/>
+        <Enum Name="InterruptOnChange" Value="1"/>
+        <Enum Name="InterruptOnFallingEdge" Value="2"/>
+        <Enum Name="InterruptOnRaisingEdge" Value="3"/>
+      </ValueSet>
+    </Bitfield>
+    <Bitfield Name="Isc1" Position="2" Width="2">
+      <Description>Interrupt sense contol register 1; same options as for Isc0</Description>
+    </Bitfield>
+  </TypeDefinition>
+
 
   <TypeDefinition Name ="GPIO_T" xsi:type="StructType">
     <Description>General purpose IO
@@ -99,33 +127,41 @@
     <Stereotype>HardwarePeripheral</Stereotype>
     <TypeDefinition Name="PIN_T" xsi:type="IntegerType" Size="1" Signed="false">
       <Description>Bitmasks for port pins</Description>
-      <Bitfield Name="0" Width ="1" Position ="0">
+      <Bitfield Name="_0" Width ="1" Position ="0">
+      	<Description>Pin 0</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_1" Width ="1" Position ="1">
+         <Description>Pin 1</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_2" Width ="1" Position ="2">
+	<Description>Pin 2</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_3" Width ="1" Position ="3">
-        <Default>0</Default>
+        <Description>Pin 3</Description>
+	<Default>0</Default>
       </Bitfield>
       <Bitfield Name="_4" Width ="1" Position ="4">
+      	<Description>Pin 4</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_5" Width ="1" Position ="5">
+      	<Description>Pin 5</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_6" Width ="1" Position ="6">
+      	<Description>Pin 6</Description>
         <Default>0</Default>
       </Bitfield>
       <Bitfield Name="_7" Width ="1" Position ="7">
+      	<Description>Pin 7</Description>
         <Default>0</Default>
       </Bitfield>
     </TypeDefinition>
     <TypeDefinition Name="DataDirection_T" xsi:type="EnumType" Size="1">
-      <Description>Direktion of a digital IO</Description>
+      <Description>Direktion of a digital IO; 0 = Input; 1 = Output</Description>
       <Enum Name="DdrInput" Value="0"/>
       <Enum Name="DdrOutput" Value="1"/>
     </TypeDefinition>
@@ -133,7 +169,7 @@
       <Description>Port input data</Description>
     </Field>
     <Field Name="DDR" FieldType="PIN_T" Aligned="1">
-      <Description>Data direction register</Description>
+      <Description>Data direction register; 0 = Input; 1 = Output</Description>
     </Field>
     <Field Name="PORT" FieldType="PIN_T" Aligned="1">
       <Description>Data (output) or pull up (input)</Description>
@@ -147,7 +183,7 @@
     <Stereotype>HardwarePeripheral</Stereotype>
     <TypeDefinition Name="TCCRA_T" xsi:type="IntegerType" Size="1" Signed="false">
       <Bitfield Name="WGM" Position="0" Width="2">
-
+	<Description>Wave form generation mode</Description>
         <ValueSet Name ="WaveFormGenerationModes">
           <Description>Waveform generation mode:
             0 = Normal mode operation 
@@ -579,6 +615,9 @@
     <Symbol Name="Tifr0" Offset="0x15" Type="TIFR_T">
       <Description>Timer interrupt flags</Description>
     </Symbol>
+    <Symbol Name="Eimsk" Offset="0x1D" Type="EIMSK_T">
+      <Description>External interrupt enable mask register</Description>
+    </Symbol>
     <Symbol Name="Tifr1" Offset="0x16" Type="TIFR_T">
       <Description>Timer interrupt flags</Description>
     </Symbol>
@@ -599,6 +638,7 @@
 
   <MemorySection  Name="IOMEM_High" Address="0x00" ByteOrder="LittleEndian" Chip="M328">
     <Symbol Name="Prr" Offset="0x64" Type="PRR_T"/>
+    <Symbol Name="Eicra" Offset="0x69" Type="EICRA_T"/>
     <Symbol Name="Timsk0" Offset="0x6E" Type="TIMSK_T"/>
     <Symbol Name="Timsk1" Offset="0x6F" Type="TIMSK_T"/>
     <Symbol Name="Timsk2" Offset="0x70" Type="TIMSK_T"/>

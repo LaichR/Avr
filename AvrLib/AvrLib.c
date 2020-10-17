@@ -5,7 +5,11 @@
  *  Author: rolfl
 */
 
-//#define __AVR_ATmega328P__
+#ifndef __AVR_ATmega328P__
+#define __AVR_ATmega328P__
+#endif // !1
+
+
 
 #include <string.h>
 #include <inttypes.h>
@@ -25,6 +29,7 @@
 
 Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
 
+
 static uint8_t _enterAtomicNesting = 0;
 
 #define USART_RX_BUFFER_SIZE 32
@@ -41,28 +46,42 @@ static volatile uint8_t USART_rxBufferOut = 0;
 static volatile uint8_t USART_txBufferIn = 0;
 static volatile uint8_t USART_txBufferOut = 0;
 
-static AvrMessage _avrMessagePool[7];
-static uint8_t    _avrMsgIndex[8] = { 0,1,2,3,4,5,6, 0};
+static AvrMessage _avrMessagePool[8];
+static uint8_t    _avrMsgIndex[8] = { 0, 1, 2, 3, 4, 5, 6, 7};
 static uint8_t    _avrPoolIn = countof(_avrMessagePool) - 1;
 static uint8_t    _avrPoolOut = 0;
 
+typedef struct
+{
+	uint16_t adress;
+	uint8_t len;
+	union
+	{
+		uint8_t byte;
+		uint16_t word;
+	}data;
+}CmdWriteReg;
+
+typedef struct
+{
+	uint16_t adress;
+	uint8_t len;
+}CmdReadReg;
 
 
 static Fsm _anchor = { .CurrentState = 0, .Next = &_anchor , .RxMask = 0 };
 
-static Message _messagePool[32] =
-{
-	[31] = {.__next = 31, .Priority = 16 }
-};
+static Message _messagePool[32];
 
-static Message* _root = &_messagePool[31];
+
+static Message _root = { .Priority = 16, .__next = &_root };
 
 static uint8_t _messagePoolIndex[countof(_messagePool)] =
 {
 	0,1,2,3,4,5,6,7,
 	8,9,10,11,12,13,14,15,
 	16,17,18,19,20,21,22,23,
-	24, 25, 26, 26, 28,29,30
+	24, 25, 26, 26, 28,29,30,31
 };
 
 static uint8_t _qIn = countof(_messagePool)-1;
@@ -139,8 +158,7 @@ void LeaveAtomic(void)
 
 void HandleMessage(char receivedData)
 {
-	//Usart_PutChar(0xaa);
-	//Usart_PutChar(receivedData);
+	
 	static uint8_t msgBuffer[14]; // longest
 	static uint8_t bufferIndex = 0;
 	static uint8_t msgType = 0;
@@ -170,10 +188,14 @@ void HandleMessage(char receivedData)
 
 void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
 {
+	Usart_PutChar(0xD1);
 	if (_avrPoolOut != _avrPoolIn)
 	{
 		uint8_t msgIndex = _avrMsgIndex[_avrPoolOut++];
 		_avrPoolOut %= countof(_avrMsgIndex);
+		Usart_PutChar(0xD5);
+		Usart_PutChar(msgIndex);
+		Usart_PutChar(msgType^0xFF);
 		_avrMessagePool[msgIndex].MsgType = msgType;
 		_avrMessagePool[msgIndex].Length = msgLen;
 		memcpy(_avrMessagePool[msgIndex].Payload, msg, msgLen);
@@ -210,14 +232,18 @@ void RegisterFsm(Fsm* fsm)
 
 Bool DispatchEvent(void)
 {
-	Message msg;
+	Message msg = { .Id = 0, .__next = 0 };
 	if (GetMessage(&msg))
 	{
-		
+		Usart_PutChar(0xD2);
 		if (msg.Id & 0x80) // this was a AVR message => pass it to the messageHandler
 		{
 			uint8_t msgIndex = msg.MsgParamLow;
-			HandleAvrMessage(&_avrMessagePool[_avrMsgIndex[msgIndex]]);
+			Usart_PutChar(msgIndex);
+			AvrMessage* avrMsg = &_avrMessagePool[msgIndex];
+			Usart_PutChar(avrMsg->MsgType ^ 0xFF);
+
+			HandleAvrMessage(avrMsg);
 			_avrMsgIndex[_avrPoolIn++] = msgIndex;
 			_avrPoolIn %= countof(_avrMsgIndex);
 		}
@@ -240,7 +266,10 @@ Bool DispatchEvent(void)
 	return False;
 }
 
-
+/**
+* @brief Put a message into the queue
+* 
+*/
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 {
 	//uint8_t nextMessageIn = (_qIn + 1) % (countof(_prioQueue));
@@ -250,7 +279,9 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 		Usart_PutChar(0xAD);
 		return; // todo: what shall be done in case a message is discarded?
 	}
-	
+	Usart_PutChar(0xD4);
+
+	// get a free slot
 	Message* msg = &_messagePool[_messagePoolIndex[_qOut++]];
 	_qOut %= countof(_messagePool);
 	msg->Priority = prio;
@@ -258,35 +289,49 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 	msg->MsgParamLow = msgLow;
 	msg->MsgParamHigh = msgHigh;
 	
-	Message* p = _root;
+	Usart_PutChar(msg->Id ^ 0xFF);
+
+	Message* p = &_root;
 	
 	Message* q = p;
-	while (msg->Priority <= p->Priority && p->__next != 31 )
+	// search place in the priority list to insert the message
+	while (msg->Priority <= p->Priority && p->__next != &_root )
 	{
 		q = p;
-		p = &_messagePool[p->__next];
+		p = p->__next;
 	}
 	EnterAtomic();
 	msg->__next = q->__next;
-	q->__next = (msg - _messagePool);
+	q->__next = msg;
 	LeaveAtomic();
 }
 
 
 Bool GetMessage(Message* msg)
 {
-	Message* p = _root;
-	Message* q = &_messagePool[p->__next];
+	Message* p = &_root;
+	Message* q = _root.__next;
 	if (p != q)
 	{
+		// get the first element in the queue
 		*msg = *q;
+		msg->__next = 0;
+
 		EnterAtomic();
-		_messagePoolIndex[_qIn++] = p->__next;
+		
+		// set pointer back to free list
+		_messagePoolIndex[_qIn++] = q-_messagePool;
+		_root.__next = q->__next;
+
+		memset(q, 0, sizeof(Message));
+
 		_qIn %= countof(_messagePoolIndex);
-		p->__next = q->__next;		
+		
 		LeaveAtomic();
+		Usart_PutChar(0xD3); // get a message
 		return True;
 	}
+	
 	//else if (_qIn + 1 != _qOut)
 	//{
 	//	EnterAtomic();
@@ -354,18 +399,30 @@ void DisallowUartRx(void)
 }
 
 
-ISR(USART_RX_vect)
+ISR_UsartRxComplete()
 {
 	while (Usart.UCSRA & UCSRA_RXC_mask)
 	{
 		char receivedChar = Usart.UDR;
-		uint8_t nextInput = (USART_rxBufferIn + 1) % USART_RX_BUFFER_SIZE;
+		uint8_t nextInput = (USART_rxBufferIn + 1) % countof(USART_rxBuffer);
 		if ((nextInput) != USART_rxBufferOut)
 		{
 			USART_rxBuffer[USART_rxBufferIn] = receivedChar;
 			USART_rxBufferIn = nextInput;
 		}
 	}
+}
+
+ISR_ExtInt0()
+{
+	Tcnt0.OCRA = 0;
+	Tcnt0.OCRB = 0;
+}
+
+ISR_ExtInt1()
+{
+	Tcnt0.OCRA = 0;
+	Tcnt0.OCRB = 0;
 }
 
 #else
@@ -398,7 +455,7 @@ ISR(USART_RXC_vect)
 	while (UCSRA & (1 << RXC))
 	{
 		char receivedChar = UDR;
-		uint8_t nextInput = (USART_rxBufferIn + 1) % USART_RX_BUFFER_SIZE;
+		uint8_t nextInput = (USART_rxBufferIn + 1) % countof(USART_rxBuffer);
 		if ((nextInput) != USART_rxBufferOut)
 		{
 			USART_rxBuffer[USART_rxBufferIn] = receivedChar;
@@ -478,7 +535,63 @@ void RegisterAvrMessageHandler(AvrMessageHandler handler)
 
 void DefaultMessageHandler(const AvrMessage* msg)
 {
-
+	if (msg->MsgType == PacketType_ReadRegister)
+	{
+		Usart_PutChar(0xC1);
+		CmdReadReg* pReadReg = (CmdReadReg*)msg->Payload;
+		uint16_t header = (PacketType_ReadRegister<<8) | (pReadReg->len);
+		
+		if (pReadReg->len == 1)
+		{
+			uint8_t* regAddr = (uint8_t*)pReadReg->adress;
+			uint8_t byte = *regAddr;
+			Usart_PutShort(header);
+			Usart_PutChar(byte);
+		}
+		else if (pReadReg->len == 2)
+		{
+			uint16_t* regAddr = (uint16_t*)pReadReg->adress;
+			uint16_t word = *regAddr;
+			Usart_PutShort(header);
+			Usart_PutShort(word);
+		}
+		else
+		{
+			header &= 0xFF;
+			Usart_PutShort(header);
+		}
+	}
+	else if (msg->MsgType == PacketType_WriteRegister)
+	{
+		Usart_PutChar(0xB1);
+		CmdWriteReg* pWriteReg = (CmdWriteReg* )msg->Payload;
+		uint16_t status = (PacketType_WriteRegister<<8)|1;
+		//Usart_PutChar(0xB2);
+		//Usart_PutShort(pWriteReg->adress);
+		//Usart_PutChar(pWriteReg->len);
+		//Usart_PutChar(0xB3);
+		//uint8_t i = 0;
+		//for (; i < msg->Length; i++)
+		//{
+		//	Usart_PutChar(msg->Payload[i]);
+		//}
+		//Usart_PutChar(0xB4);
+		if (pWriteReg->len == 1)
+		{
+			uint8_t* regAddr = (uint8_t*)pWriteReg->adress;
+			*regAddr = pWriteReg->data.byte;
+		}
+		else if (pWriteReg->len == 2)
+		{
+			uint16_t* regAddr = (uint16_t*)pWriteReg->adress;
+			*regAddr = pWriteReg->data.word;
+		}
+		else
+		{
+			status &= 0xFF00;
+		}
+		Usart_PutShort(status);
+	}
 }
 
 

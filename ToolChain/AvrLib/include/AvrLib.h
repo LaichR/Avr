@@ -40,13 +40,20 @@ typedef enum
     Priority_7,
 } Priority_T;
 
+typedef enum
+{
+    MessageId_Undefined = 0,
+    MessageId_HwEvent = 1,
+} MessageId;
 
 typedef enum
 {
 	 PacketType_Undefined = 0,
-	 PacketType_LiftSimulatorButton = 2,
-	 PacketType_TestCommand = 3,
-     PacketType_RawData = 4,
+	 PacketType_LiftSimulatorButton = 0xA2,
+	 PacketType_TestCommand = 0xA3,
+     PacketType_RawData = 0xA4,
+     PacketType_ReadRegister = 0xA6,
+     PacketType_WriteRegister = 0xA8,
      PacketType_TraceMassagePadLen = 0xA8,
 	 PacketType_TraceMessage = 0xA5,     
 } AvrPacketType;
@@ -79,9 +86,9 @@ typedef enum
          };
          void* Ptr;                         ///< man kann die Parameter auch als Pointer interpretieren
      };
-     uint8_t __next;                ///< element with next priority
+     struct Message_tag* __next;                ///< element with next priority
  }Message;
-
+ 
 
 
  /**
