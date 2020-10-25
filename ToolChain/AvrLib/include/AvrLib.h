@@ -30,6 +30,37 @@ typedef enum
 
 typedef enum
 {
+    ExtInterruptSource0,
+    ExtInterruptSource1
+}ExtInteruptSource;
+
+typedef enum
+{
+    ExtIntTrigger_OnLow = 0,
+    ExtIntTrigger_OnChange = 1,
+    ExtIntTrigger_OnFallingEdge = 2,
+    ExtIntTrigger_OnRaisingEdge = 3,
+}ExtIntTrigger;
+
+typedef enum
+{
+    CompareMatchSource1,
+    CompareMatchSource2,
+    CompareMatchSource3,
+    CompareMatchSource4,
+}CompareMatchSource;
+
+typedef enum
+{
+    TimerFrequency_Div1 = 0,
+    TimerFrequency_Div8 = 1,
+    TimerFrequency_Div64 = 2,
+    TimerFrequency_Div256 = 3,
+    TimerFrequency_Div1024 = 4,
+}TimerFrequency;
+
+typedef enum
+{
     Priority_0, ///<small numbers have low priority
     Priority_1,
     Priority_2,
@@ -92,6 +123,12 @@ typedef enum
 
 
  /**
+ * @brief Prototyp einer InterruptServiceRoutine
+ */
+
+ typedef void (*IsrHandler)(void);
+
+ /**
  * @brief Prototyp einer Zustandsfunktion
  */
  typedef void (*StateHandler)(const Message* msg);
@@ -137,6 +174,33 @@ typedef enum
 */
 
  void RegisterAvrMessageHander(AvrMessageHandler handler);
+
+ /**
+ * @brief Setup exernal Interrupt source
+ * 
+ * Setup external interrupt source. This includes the configuration of the HW and the
+ * enabling of the interrupts;
+ */
+ void RegisterExternalInteruptHandler(ExtInteruptSource source,
+     ExtIntTrigger trigger, IsrHandler handler);
+
+ /**
+ * Disable intterupts and unregister a previously registered handler
+ */
+ void UnregisterExternalInterruptHandler(ExtInteruptSource source);
+
+ /**
+ * @brief Setup compare match interrupt on one of four available interrupt sources
+ * 
+ * This function sets up the timer block in order to generate compare match interrupts
+ * Note: CompareMatchSource0 and CompareMatchSource1 refer to the HW Tcnt0
+ * CompareMatchSource2 and CompareMatchSource3 refer to Tcnt1. Changing the frequency
+ * changes the frequenty of both interrupt sources of the timer!
+ */
+ void RegisterCompareMatchInterrupt(CompareMatchSource source,
+     TimerFrequency frequency, uint8_t match, IsrHandler handler);
+
+ void UnregisterCompareMatchInterrupt(CompareMatchSource source);
 
 
 /**

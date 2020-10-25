@@ -89,6 +89,7 @@ class HeaderWriter:
 
     def VisitMemorySymbol( self, symbolNode):
         name = symbolNode.GetName()
+        print("visiting memory symbol {0}!".format(name))
         symbolType = symbolNode.GetType()
         stereotype = symbolType.GetStereotype()
         c_type = PM.IntegerTypeMap.get(symbolType.GetFormatString(), symbolType.GetName())

@@ -92,6 +92,7 @@
   </TypeDefinition>
 
   <TypeDefinition Name ="EIMSK_T" xsi:type="IntegerType" Size="1" Signed="false">
+    <Stereotype>HardwareRegister</Stereotype>
     <Description>External interrupt mask register</Description>
     <Bitfield Name="EnInt0" Position="0" Width="1">
       <Description>Enables the external interrupt on INT0</Description>

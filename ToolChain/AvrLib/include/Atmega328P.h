@@ -149,6 +149,46 @@ typedef enum
 #define MCUCR_BODS_pos 6
 #define MCUCR_BODS_width 1
 
+/**
+* bitfield EnInt0
+*/
+#define EIMSK_EnInt0_mask 0x01
+#define EIMSK_EnInt0_pos 0
+#define EIMSK_EnInt0_width 1
+
+/**
+* bitfield EnInt1
+*/
+#define EIMSK_EnInt1_mask 0x02
+#define EIMSK_EnInt1_pos 1
+#define EIMSK_EnInt1_width 1
+
+/**
+* bitfield Isc0
+*/
+#define EICRA_Isc0_mask 0x03
+#define EICRA_Isc0_pos 0
+#define EICRA_Isc0_width 2
+
+/**
+* bitfield Isc1
+*/
+#define EICRA_Isc1_mask 0x0C
+#define EICRA_Isc1_pos 2
+#define EICRA_Isc1_width 2
+
+
+/**
+* Options for interrupt sense control
+*/
+typedef enum
+{
+    InterruptOnLow=0,
+    InterruptOnChange=1,
+    InterruptOnFallingEdge=2,
+    InterruptOnRaisingEdge=3,
+} IscOptions;
+
 
 /**
 * General purpose IO
@@ -158,11 +198,11 @@ typedef enum
 typedef struct GPIO_T_tag
 {
     volatile uint8_t PIN;	///< Port input data
-    volatile uint8_t DDR;	///< Data direction register
+    volatile uint8_t DDR;	///< Data direction register; 0 = Input; 1 = Output
     volatile uint8_t PORT;	///< Data (output) or pull up (input)
 } GPIO_T;
 /**
-* bitfield 0
+* bitfield _0
 */
 #define PIN_0_mask 0x01
 #define PIN_0_pos 0
@@ -219,7 +259,7 @@ typedef struct GPIO_T_tag
 
 
 /**
-* Direktion of a digital IO
+* Direktion of a digital IO; 0 = Input; 1 = Output
 */
 typedef enum
 {
@@ -879,12 +919,14 @@ typedef enum
 #define PortC (*((volatile GPIO_T*)0x00000026))
 #define PortD (*((volatile GPIO_T*)0x00000029))
 #define Tifr0 (*((volatile uint8_t*)0x00000035))
+#define Eimsk (*((volatile uint8_t*)0x0000003D))
 #define Tifr1 (*((volatile uint8_t*)0x00000036))
 #define Tifr2 (*((volatile uint8_t*)0x00000037))
 #define Tcnt0 (*((volatile TCNT8_T*)0x00000044))
 #define Smcr (*((volatile uint8_t*)0x00000053))
 #define Mcucr (*((volatile uint8_t*)0x00000055))
 #define Prr (*((volatile uint8_t*)0x00000064))
+#define Eicra (*((volatile uint8_t*)0x00000069))
 #define Timsk0 (*((volatile uint8_t*)0x0000006E))
 #define Timsk1 (*((volatile uint8_t*)0x0000006F))
 #define Timsk2 (*((volatile uint8_t*)0x00000070))

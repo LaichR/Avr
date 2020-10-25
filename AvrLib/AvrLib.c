@@ -25,7 +25,8 @@
 /**************************************************************************/
 
 
-
+static IsrHandler _extIntHandler[2] = { 0,0 };
+static IsrHandler _compareMatchHandler[4] = { 0,0,0,0 };
 
 Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
 
@@ -108,6 +109,76 @@ void Usart_PutShort(uint16_t value);
 /*                function implementations                                */
 /**************************************************************************/
 
+
+/**
+ * @brief Setup exernal Interrupt source
+ *
+ */
+void RegisterExternalInteruptHandler(ExtInteruptSource source,
+	ExtIntTrigger trigger, IsrHandler handler)
+{
+	EnterAtomic();
+	Eicra |= (trigger << source);
+	_extIntHandler[source] = handler;
+	Eimsk |= (1 << source);
+	LeaveAtomic();
+}
+
+/**
+* Disable intterupts and unregister a previously registered handler
+*/
+void UnregisterExternalInterruptHandler(ExtInteruptSource source)
+{
+	EnterAtomic();
+	Eimsk &= ~(1 << source);
+	_extIntHandler[source] = 0;
+	LeaveAtomic();
+}
+
+
+/**
+* @brief Setup compare match interrupt on one of four available interrupt sources
+*
+* This function sets up the timer block in order to generate compare match interrupts
+* Note: CompareMatchSource0 and CompareMatchSource1 refer to the HW Tcnt0
+* CompareMatchSource2 and CompareMatchSource3 refer to Tcnt1. Changing the frequency
+* changes the frequenty of both interrupt sources of the timer!
+*/
+
+static const uint8_t source1Div[] = { 1,2,3,4,5 };
+static const uint8_t source2Div[] = { 1,2,4,6,7 };
+
+void RegisterCompareMatchInterrupt(CompareMatchSource source,
+	TimerFrequency frequency, uint8_t match, IsrHandler handler)
+{
+
+	volatile TCNT8_T *timer = &Tcnt0;
+	volatile uint8_t* msk = &Timsk0;
+	const uint8_t* pDiv = source1Div;
+	if (source > CompareMatchSource1)
+	{
+		timer = &Tcnt2;
+		pDiv = source2Div;
+		msk = &Timsk2;
+	}
+	SetRegister(timer->TCCRA, (TCCRA_WGM, ClrTmrOnCmpMatch));
+	SetRegister(timer->TCCRB, (TCCRB_CS, pDiv[frequency]));
+	volatile uint8_t* pmatch = &timer->OCRA;
+	pmatch[(uint8_t)source&1] = match;
+	_compareMatchHandler[source] = handler;
+	*msk |= 1 << ((source & 1) + 1);
+}
+
+void UnregisterCompareMatchInterrupt(CompareMatchSource source)
+{
+	volatile uint8_t* msk = &Timsk0;
+	if (source > CompareMatchSource1)
+	{
+		msk = &Timsk2;
+	}
+	*msk &= ~( 1 << ((source & 1) + 1));
+	_compareMatchHandler[source] = 0;
+}
 
 /**
 * @brief Initialisierung des Anfangszustandes
@@ -413,16 +484,54 @@ ISR_UsartRxComplete()
 	}
 }
 
+
 ISR_ExtInt0()
 {
-	Tcnt0.OCRA = 0;
-	Tcnt0.OCRB = 0;
+	if (_extIntHandler[ExtInterruptSource0] != 0)
+	{
+		_extIntHandler[ExtInterruptSource0]();
+	}
 }
 
 ISR_ExtInt1()
 {
-	Tcnt0.OCRA = 0;
-	Tcnt0.OCRB = 0;
+	if (_extIntHandler[ExtInterruptSource1] != 0)
+	{
+		_extIntHandler[ExtInterruptSource1]();
+	}
+}
+
+
+ISR_Tcnt0CompareMatchA()
+{
+	if (_compareMatchHandler[CompareMatchSource1] != 0)
+	{
+		_compareMatchHandler[CompareMatchSource1]();
+	}
+}
+
+ISR_Tcnt0CompareMatchB()
+{
+	if (_compareMatchHandler[CompareMatchSource2] != 0)
+	{
+		_compareMatchHandler[CompareMatchSource2]();
+	}
+}
+
+ISR_Tcnt2CompareMatchA()
+{
+	if (_compareMatchHandler[CompareMatchSource3] != 0)
+	{
+		_compareMatchHandler[CompareMatchSource3]();
+	}
+}
+
+ISR_Tcnt2CompareMatchB()
+{
+	if (_compareMatchHandler[CompareMatchSource4] != 0)
+	{
+		_compareMatchHandler[CompareMatchSource4]();
+	}
 }
 
 #else
@@ -537,10 +646,10 @@ void DefaultMessageHandler(const AvrMessage* msg)
 {
 	if (msg->MsgType == PacketType_ReadRegister)
 	{
-		Usart_PutChar(0xC1);
+		
 		CmdReadReg* pReadReg = (CmdReadReg*)msg->Payload;
 		uint16_t header = (PacketType_ReadRegister<<8) | (pReadReg->len);
-		
+		EnterAtomic();
 		if (pReadReg->len == 1)
 		{
 			uint8_t* regAddr = (uint8_t*)pReadReg->adress;
@@ -560,22 +669,13 @@ void DefaultMessageHandler(const AvrMessage* msg)
 			header &= 0xFF;
 			Usart_PutShort(header);
 		}
+		LeaveAtomic();
 	}
 	else if (msg->MsgType == PacketType_WriteRegister)
 	{
-		Usart_PutChar(0xB1);
 		CmdWriteReg* pWriteReg = (CmdWriteReg* )msg->Payload;
 		uint16_t status = (PacketType_WriteRegister<<8)|1;
-		//Usart_PutChar(0xB2);
-		//Usart_PutShort(pWriteReg->adress);
-		//Usart_PutChar(pWriteReg->len);
-		//Usart_PutChar(0xB3);
-		//uint8_t i = 0;
-		//for (; i < msg->Length; i++)
-		//{
-		//	Usart_PutChar(msg->Payload[i]);
-		//}
-		//Usart_PutChar(0xB4);
+		EnterAtomic();
 		if (pWriteReg->len == 1)
 		{
 			uint8_t* regAddr = (uint8_t*)pWriteReg->adress;
@@ -590,7 +690,9 @@ void DefaultMessageHandler(const AvrMessage* msg)
 		{
 			status &= 0xFF00;
 		}
+		
 		Usart_PutShort(status);
+		LeaveAtomic();
 	}
 }
 
