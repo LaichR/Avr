@@ -69,6 +69,7 @@ typedef struct
 	uint8_t len;
 }CmdReadReg;
 
+static uint32_t _timerUs;
 
 static Fsm _anchor = { .CurrentState = 0, .Next = &_anchor , .RxMask = 0 };
 
@@ -155,18 +156,20 @@ void RegisterCompareMatchInterrupt(CompareMatchSource source,
 	volatile TCNT8_T *timer = &Tcnt0;
 	volatile uint8_t* msk = &Timsk0;
 	const uint8_t* pDiv = source1Div;
-	if (source > CompareMatchSource1)
+	uint8_t  isrMask = source & 0x3;;
+	if (source > CompareMatchSource2)
 	{
 		timer = &Tcnt2;
 		pDiv = source2Div;
 		msk = &Timsk2;
+		isrMask = (source- CompareMatchSource3) & 3;
 	}
 	SetRegister(timer->TCCRA, (TCCRA_WGM, ClrTmrOnCmpMatch));
 	SetRegister(timer->TCCRB, (TCCRB_CS, pDiv[frequency]));
 	volatile uint8_t* pmatch = &timer->OCRA;
-	pmatch[(uint8_t)source&1] = match;
+	pmatch[isrMask] = match;
 	_compareMatchHandler[source] = handler;
-	*msk |= 1 << ((source & 1) + 1);
+	*msk |= 1 << ((isrMask) + 1);
 }
 
 void UnregisterCompareMatchInterrupt(CompareMatchSource source)
@@ -272,6 +275,23 @@ void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
 		memcpy(_avrMessagePool[msgIndex].Payload, msg, msgLen);
 		SendMessage(Priority_0, msgType | 0x80, msgIndex, 0);
 	}
+}
+
+
+void StartTimer(void)
+{
+	_timerUs = 0;
+	Tcnt1.TCCRA = 0; // normal timer operation
+	Tcnt1.TCCRB = 2; // clock divider = 8 => every tick is 0.5 us;
+	TIMSK1 |= 1; // enable overflow interrupt
+}
+
+uint32_t GetElapsedTime(void)
+{
+	//Tcnt1.OCRB &= ~0x7; // stop the timer by setting its divider to 0
+	uint32_t us = (Tcnt1.TCNT >> 1) + _timerUs;
+	Tcnt1.TCNT = 0;
+	return us;
 }
 
 
@@ -532,6 +552,11 @@ ISR_Tcnt2CompareMatchB()
 	{
 		_compareMatchHandler[CompareMatchSource4]();
 	}
+}
+
+ISR_Tcnt1Overflow()
+{
+	_timerUs += 0x7FFF; // this is the amount of us that has elapsed
 }
 
 #else

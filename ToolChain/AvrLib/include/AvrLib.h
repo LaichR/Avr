@@ -44,11 +44,12 @@ typedef enum
 
 typedef enum
 {
-    CompareMatchSource1,
-    CompareMatchSource2,
-    CompareMatchSource3,
-    CompareMatchSource4,
+    CompareMatchSource1=0,
+    CompareMatchSource2=1,
+    CompareMatchSource3=2,
+    CompareMatchSource4=3,
 }CompareMatchSource;
+
 
 typedef enum
 {
@@ -202,6 +203,9 @@ typedef enum
 
  void UnregisterCompareMatchInterrupt(CompareMatchSource source);
 
+
+ void StartTimer(void);
+ uint32_t GetElapsedTime(void);
 
 /**
 * @brief Registriert eine Zustandsmaschine im Framework
