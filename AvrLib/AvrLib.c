@@ -284,7 +284,7 @@ void StartTimer(void)
 	Tcnt1.TCCRA = 0; // normal timer operation
 	Tcnt1.TCCRB = 2; // clock divider = 8 => every tick is 0.5 us;
 	TIMSK1 |= 1; // enable overflow interrupt
-}
+}	
 
 uint32_t GetElapsedTime(void)
 {

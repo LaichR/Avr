@@ -1,10 +1,15 @@
-import clr, os, sys, pathlib, re, itertools, functools, json
+import clr, os, os.path, sys, pathlib, re, itertools, functools, json
 
 #link to dot net libraries
 p = pathlib.Path(__file__)
+
 dotNetPath = (p.parent.parent / 'DotNetLib').resolve()
-# print( dotNetPath )
+
+assert( os.path.exists( dotNetPath ))
+
 gccRoot = p.parent.parent / 'avr8-gnu-toolchain-win32_x86'
+assert( os.path.exists( gccRoot ))
+
 sys.path.append(str(dotNetPath))
 
 
