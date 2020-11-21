@@ -111,6 +111,21 @@ void Usart_PutShort(uint16_t value);
 /**************************************************************************/
 
 
+uint16_t MeasureOnce(AnalogChannelSelection channel, ReferenceSelection Vref, AdcPrescaler prescaler)
+{
+	
+	Adc.Adcsrb = 0;
+	if (channel < 6)
+	{
+		Adc.Didr0 = 1 << channel;
+	}
+	SetRegister( Adc.Admux, (ADMUX_MUX, channel), (ADMUX_REFS,Vref));
+	SetRegister(Adc.Adcsra, (ADCSRA_ADEN, 1), (ADCSRA_ADSC, 1), (ADCSRA_ADPS, prescaler));
+	while (Adc.Adcsra & ADCSRA_ADSC_mask);
+	Adc.Didr0 = 0;
+	return Adc.Data;
+}
+
 /**
  * @brief Setup exernal Interrupt source
  *

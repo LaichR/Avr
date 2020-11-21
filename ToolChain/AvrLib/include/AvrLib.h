@@ -28,6 +28,8 @@ typedef enum
 	True = 1
 } Bool;
 
+
+
 typedef enum
 {
     ExtInterruptSource0,
@@ -41,6 +43,8 @@ typedef enum
     ExtIntTrigger_OnFallingEdge = 2,
     ExtIntTrigger_OnRaisingEdge = 3,
 }ExtIntTrigger;
+
+
 
 typedef enum
 {
@@ -185,6 +189,20 @@ typedef enum
  void RegisterExternalInteruptHandler(ExtInteruptSource source,
      ExtIntTrigger trigger, IsrHandler handler);
 
+
+ /**
+ * @brief Execute a single measurement on the ADC. 
+ * 
+ * A single measurement is exeucted. The caller is blocked until the measurement completes
+ * @param channel is the analog channel that is used in the measurement
+ * @param Vref is the reference voltate to be used 
+ * @param prescaler ist the ADC prescaler. The higher the value the more time is used for the measurement and the more accurate the measurement will be.
+ * @return measured value from ADC
+ */
+ uint16_t MeasureOnce(AnalogChannelSelection channel, ReferenceSelection Vref, AdcPrescaler prescaler);
+ 
+
+
  /**
  * Disable intterupts and unregister a previously registered handler
  */
@@ -204,7 +222,20 @@ typedef enum
  void UnregisterCompareMatchInterrupt(CompareMatchSource source);
 
 
+ /**
+ * @brief Start the Timer on Tcnt1 and reset internal counters
+ * 
+ * Tcnt1 holds a 16bit counter. In case the counter overflows, a int32 counter variable is incremented.
+ * The counter variable is supposed to refelct the us since the last start of the counter!
+ * (Timer-Frequency is set to 2Mhz)
+ * The timer variable will hence overflow every 2^32 us 4295s  > 1h
+ */
  void StartTimer(void);
+
+ /**
+ * Get the elapsed time since the last call to StartTimer
+ * @return time in us
+ */
  uint32_t GetElapsedTime(void);
 
 /**
