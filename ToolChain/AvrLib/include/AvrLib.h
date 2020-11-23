@@ -1,7 +1,7 @@
 /***
  * AvrLib.h
  *
- * Supporting functions for the course ICT M242
+ * Supporting functions for the course ICT M121 and M242
  *
  */
 
@@ -29,6 +29,10 @@ typedef enum
 } Bool;
 
 
+/**
+* @brief enum describing the usable interrupt sources
+* 
+*/
 
 typedef enum
 {
@@ -36,6 +40,10 @@ typedef enum
     ExtInterruptSource1
 }ExtInteruptSource;
 
+/**
+* @brief enum describing the trigger events on the interrupt sources. The enum names should be self-expanatory
+* 
+*/
 typedef enum
 {
     ExtIntTrigger_OnLow = 0,
@@ -45,7 +53,11 @@ typedef enum
 }ExtIntTrigger;
 
 
-
+/**
+* @brief Enum identifying the supported compare match trigger sources
+* 
+* 
+*/
 typedef enum
 {
     CompareMatchSource1=0,
@@ -55,6 +67,9 @@ typedef enum
 }CompareMatchSource;
 
 
+/**
+* @brief enum describing the timer devisions supported by teh function: RegisterCompareMatch
+*/
 typedef enum
 {
     TimerFrequency_Div1 = 0,
@@ -161,7 +176,7 @@ typedef enum
 
 
 /**************************************************************************************/
-/*                   Funktion Prototypes                                              */
+/*                   Function Prototypes                                              */
 /**************************************************************************************/
 
 
@@ -174,14 +189,23 @@ typedef enum
  void InitializeStateEventFramework(void);
 
 /**
-* @brief Registriert einen Test handler für die Bearbeitung von Uart Inputs
+* @brief Register a test handler
 * 
+* @param handler funktion
+* 
+* The handler can react on uart message sent from the PC. Note: a default handler is already installed
+* in case a custom handler is register, the default handler should be called as fallback handler. 
+* Otherwise reading and writing registers will not work anymore.
 */
 
  void RegisterAvrMessageHander(AvrMessageHandler handler);
 
  /**
  * @brief Setup exernal Interrupt source
+ * 
+ * @param source indicates the interrupt source, on Atmega328 this might be Int0 or Int1
+ * @param trigger specifies, what change triggers the interrupt (raising, falling, any, low)
+ * @param handler this is the function that handles the event
  * 
  * Setup external interrupt source. This includes the configuration of the HW and the
  * enabling of the interrupts;
@@ -195,8 +219,8 @@ typedef enum
  * 
  * A single measurement is exeucted. The caller is blocked until the measurement completes
  * @param channel is the analog channel that is used in the measurement
- * @param Vref is the reference voltate to be used 
- * @param prescaler ist the ADC prescaler. The higher the value the more time is used for the measurement and the more accurate the measurement will be.
+ * @param Vref is the reference voltage to be used 
+ * @param prescaler is the ADC prescaler. The higher the value the more time is used for the measurement and the more accurate the measurement will be.
  * @return measured value from ADC
  */
  uint16_t MeasureOnce(AnalogChannelSelection channel, ReferenceSelection Vref, AdcPrescaler prescaler);
@@ -215,6 +239,12 @@ typedef enum
  * Note: CompareMatchSource0 and CompareMatchSource1 refer to the HW Tcnt0
  * CompareMatchSource2 and CompareMatchSource3 refer to Tcnt1. Changing the frequency
  * changes the frequenty of both interrupt sources of the timer!
+ * Apparently CompareMatch1 only is operational if CompareMatch0 is running and CompareMatch3 is only operational if Comparematch2 is running.
+ * This seems to be a HW constraint.
+ * 
+ * @param source source of comparematch interrupt
+ * @param frequency division factor for timer. The base frequency is 16Mhz
+ * @param handler the function that does the work
  */
  void RegisterCompareMatchInterrupt(CompareMatchSource source,
      TimerFrequency frequency, uint8_t match, IsrHandler handler);
