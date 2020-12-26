@@ -1,2 +1,2 @@
 # Avr
-AVR resources for educational purpose + class projects
+Home page for AVR repository
