@@ -5,6 +5,7 @@
   - make utilitiy
   - Python 3.7.x, 
   - .Net
+  - TODO: Simplify Setup
 - AvrTerminal: GUI to interact with the board:
   - Display read and write registers of the board. The register description is provided by means of a xml file
   - Receive and display formatted trace from the baord
