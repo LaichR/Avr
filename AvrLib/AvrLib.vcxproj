@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{5edd370a-4c19-11ea-a1b9-9cb6d0985cdc}</ProjectGuid>
+    <ProjectGuid>{ebcbb34a-4919-11eb-86ff-a8a1592941d2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>AvrLib</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -88,8 +88,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;__AVR_DEV_LIB_NAME__=m32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\rolfl\Documents\GitHub\Avr\ToolChain\avr8-gnu-toolchain-win32_x86\avr\include;C:\Users\rolfl\Documents\GitHub\Avr\ToolChain\avrlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;__AVR_ATmega328P__=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\rolfl\github\Avr\ToolChain\avr8-gnu-toolchain-win32_x86\avr\include;C:\Users\rolfl\github\Avr\ToolChain\avrlib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,10 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AvrLib.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="RegisterAccess.h" />
+    
+    <ClCompile Include="AvrLib.c"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

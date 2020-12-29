@@ -20,6 +20,11 @@
 #include "AvrLib.h"
 #include <RegisterAccess.h>
 
+#define F_CPU 16000000
+#include <util/delay.h>
+
+
+
 /**************************************************************************/
 /*                global variables                                        */
 /**************************************************************************/
@@ -32,6 +37,7 @@ Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
 
 
 static uint8_t _enterAtomicNesting = 0;
+static Bool _withinIsr = False;
 
 #define USART_RX_BUFFER_SIZE 32
 #define USART_TX_BUFFER_SIZE 32
@@ -83,13 +89,13 @@ static uint8_t _messagePoolIndex[countof(_messagePool)] =
 	0,1,2,3,4,5,6,7,
 	8,9,10,11,12,13,14,15,
 	16,17,18,19,20,21,22,23,
-	24, 25, 26, 26, 28,29,30,31
+	24, 25, 26, 27, 28,29,30,31
 };
 
-static uint8_t _qIn = countof(_messagePool)-1;
+static uint8_t _qIn = 0;
 static uint8_t _qOut = 0;
 
-void DefaultMessageHandler(const AvrMessage* msg);
+
 
 
 
@@ -134,7 +140,7 @@ void RegisterExternalInteruptHandler(ExtInteruptSource source,
 	ExtIntTrigger trigger, IsrHandler handler)
 {
 	EnterAtomic();
-	Eicra |= (trigger << source);
+	Eicra |= ((trigger&0xF) << source);
 	_extIntHandler[source] = handler;
 	Eimsk |= (1 << source);
 	LeaveAtomic();
@@ -148,6 +154,27 @@ void UnregisterExternalInterruptHandler(ExtInteruptSource source)
 	EnterAtomic();
 	Eimsk &= ~(1 << source);
 	_extIntHandler[source] = 0;
+	LeaveAtomic();
+}
+
+/**
+* Change the behavior of an initially configured external interrupt
+*
+*/
+void SetExtInterruptEnable(ExtInteruptSource source, Bool enable)
+{
+	EnterAtomic();
+	if (_extIntHandler != 0)
+	{
+		uint8_t mask = (1 << source);
+		uint8_t val = Eimsk|mask;
+		if (!enable)
+		{
+			mask = ~mask;
+			val &= mask;
+		}
+		Eimsk = val;
+	}
 	LeaveAtomic();
 }
 
@@ -208,7 +235,7 @@ void InitializeStateEventFramework(void)
 
 	Usart_PutChar(0xCA);
 	Usart_PutChar(0xFE);	
-	
+	PortB.DDR |= PIN_5_mask; // set port b as outptut => this allows to toggle the led for debugging purpose!
 	while (1)
 	{
 		DispatchEvent();
@@ -224,10 +251,21 @@ void InitializeStateEventFramework(void)
 	}
 }
 
+void IsrEnter()
+{
+	_withinIsr = True;
+}
+
+void IsrLeave()
+{
+	_withinIsr = False;
+}
+
 void EnterAtomic(void)
 {
 	// in case we are in interrupt context, we must never reenable interrupts
-	//if (((SREG & 0x80) == 0) && _enterAtomicNesting == 0) return;
+	
+	if (_withinIsr) return;
 	
 	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
 	_enterAtomicNesting++;
@@ -235,6 +273,8 @@ void EnterAtomic(void)
 
 void LeaveAtomic(void)
 {
+	if (_withinIsr) return;
+
 	if (_enterAtomicNesting > 0)
 	{
 		_enterAtomicNesting--;
@@ -277,14 +317,14 @@ void HandleMessage(char receivedData)
 
 void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
 {
-	Usart_PutChar(0xD1);
+	//Usart_PutChar(0xD1);
 	if (_avrPoolOut != _avrPoolIn)
 	{
 		uint8_t msgIndex = _avrMsgIndex[_avrPoolOut++];
 		_avrPoolOut %= countof(_avrMsgIndex);
-		Usart_PutChar(0xD5);
-		Usart_PutChar(msgIndex);
-		Usart_PutChar(msgType^0xFF);
+		//Usart_PutChar(0xD5);
+		//Usart_PutChar(msgIndex);
+		//Usart_PutChar(msgType^0xFF);
 		_avrMessagePool[msgIndex].MsgType = msgType;
 		_avrMessagePool[msgIndex].Length = msgLen;
 		memcpy(_avrMessagePool[msgIndex].Payload, msg, msgLen);
@@ -341,13 +381,12 @@ Bool DispatchEvent(void)
 	Message msg = { .Id = 0, .__next = 0 };
 	if (GetMessage(&msg))
 	{
-		Usart_PutChar(0xD2);
 		if (msg.Id & 0x80) // this was a AVR message => pass it to the messageHandler
 		{
 			uint8_t msgIndex = msg.MsgParamLow;
-			Usart_PutChar(msgIndex);
+			//Usart_PutChar(msgIndex);
 			AvrMessage* avrMsg = &_avrMessagePool[msgIndex];
-			Usart_PutChar(avrMsg->MsgType ^ 0xFF);
+			//Usart_PutChar(avrMsg->MsgType ^ 0xFF);
 
 			HandleAvrMessage(avrMsg);
 			_avrMsgIndex[_avrPoolIn++] = msgIndex;
@@ -361,7 +400,7 @@ Bool DispatchEvent(void)
 			{
 				if ((p->RxMask & prioFlag) != 0)
 				{
-					p->CurrentState(&msg);
+					p->CurrentState( &msg );
 				}
 				p = p->Next;
 			}
@@ -379,23 +418,37 @@ Bool DispatchEvent(void)
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 {
 	//uint8_t nextMessageIn = (_qIn + 1) % (countof(_prioQueue));
-	if (_qIn == _qOut)
+	PortB.PORT |= PIN_5_mask;
+	EnterAtomic();
+	uint8_t nextIn = (_qIn + 1) % countof(_messagePool);
+	if (nextIn == _qOut)
 	{
 		Usart_PutChar(0xDE);
 		Usart_PutChar(0xAD);
+		LeaveAtomic();
 		return; // todo: what shall be done in case a message is discarded?
 	}
-	Usart_PutChar(0xD4);
 
 	// get a free slot
-	Message* msg = &_messagePool[_messagePoolIndex[_qOut++]];
-	_qOut %= countof(_messagePool);
+	Message* msg = &_messagePool[_messagePoolIndex[_qIn]];
+	_qIn = nextIn;
+	if (msg->__next != 0)
+	{ 
+		Usart_PutChar(0xDE);
+		Usart_PutChar(0xAD);
+		Usart_PutChar(0xBE);
+		Usart_PutChar(0xAF);
+		while (1)
+		{
+			PortB.PORT ^= PIN_5_mask;
+			_delay_ms(1000);
+		}
+		LeaveAtomic();
+	}
 	msg->Priority = prio;
 	msg->Id = id;
 	msg->MsgParamLow = msgLow;
 	msg->MsgParamHigh = msgHigh;
-	
-	Usart_PutChar(msg->Id ^ 0xFF);
 
 	Message* p = &_root;
 	
@@ -406,47 +459,38 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 		q = p;
 		p = p->__next;
 	}
-	EnterAtomic();
+	
 	msg->__next = q->__next;
 	q->__next = msg;
 	LeaveAtomic();
+	PortB.PORT ^= PIN_5_mask;
 }
 
 
 Bool GetMessage(Message* msg)
 {
+	EnterAtomic();
 	Message* p = &_root;
 	Message* q = _root.__next;
-	if (p != q)
+	Bool retValue = False;
+	if (p != q) // there is an element in the queue
 	{
 		// get the first element in the queue
 		*msg = *q;
 		msg->__next = 0;
 
-		EnterAtomic();
-		
 		// set pointer back to free list
-		_messagePoolIndex[_qIn++] = q-_messagePool;
+		_messagePoolIndex[_qOut++] = q-_messagePool;
 		_root.__next = q->__next;
 
 		memset(q, 0, sizeof(Message));
 
-		_qIn %= countof(_messagePoolIndex);
-		
-		LeaveAtomic();
-		Usart_PutChar(0xD3); // get a message
-		return True;
-	}
-	
-	//else if (_qIn + 1 != _qOut)
-	//{
-	//	EnterAtomic();
-	//	//Usart_PutChar(0xF0); // the pool should be full; otherwise we have made a mistake!
-	//	Usart_PutChar(p->__next);
-	//	LeaveAtomic();
+		_qOut %= countof(_messagePoolIndex);
 
-	//}
-	return False;
+		retValue = True;
+	}
+	LeaveAtomic();
+	return retValue;
 }
 
 #ifdef __AVR_ATmega328P__
@@ -457,18 +501,23 @@ Bool GetMessage(Message* msg)
 
 void Usart_Init(uint32_t baudrate)
 {
+	PortB.DDR |= (PIN_4_mask|PIN_5_mask);
 	/*Set baud rate */
 	Usart.UBBR = (uint16_t)(F_CPU/16/baudrate -1);
 
 	/*Enable receiver and transmitter */
-	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1),(UCSRB_RXCIEN, True), (UCSRB_TXEN, 1));
+	SetRegister(Usart.UCSRB, (UCSRB_RXEN, 1),(UCSRB_RXCIEN, True),(UCSRB_TXEN, True));
 
 	/* Set frame format: 8data, 2stop bit; work in  */
 	SetRegister(Usart.UCSRC, (UCSRC_USBS, 1), (UCSRC_UCSZ01, 3));
+
+	// enable interupts
+	sei();
 }
 
 void Usart_PutChar(char ch)
 {
+	//PortB.PORT |= PIN_4_mask;
 	EnterAtomic();
 	uint8_t nextIn = 0;
 	nextIn = (USART_txBufferIn + 1) % countof(USART_txBuffer);
@@ -476,22 +525,25 @@ void Usart_PutChar(char ch)
 	{
 		USART_txBuffer[USART_txBufferIn] = ch;
 		USART_txBufferIn = nextIn;
-		UpdateRegister(Usart.UCSRB, (UCSRB_UDRIEN, True));
+		Usart.UCSRB |= UCSRB_UDRIEN_mask;
 	}
 	LeaveAtomic();
+	//PortB.PORT &= ~PIN_4_mask;
 }
  
 ISR_UsartDataRegEmpty()
-{
+{	
+	IsrEnter();
 	if (USART_txBufferOut != USART_txBufferIn)
 	{
 		Usart.UDR = USART_txBuffer[USART_txBufferOut++];
 		USART_txBufferOut %= countof(USART_txBuffer);
 	}
-	else
+	if (USART_txBufferOut == USART_txBufferIn)
 	{
 		UpdateRegister(Usart.UCSRB, (UCSRB_UDRIEN, False));
 	}
+	IsrLeave();
 }
 
 void AllowUartRx(void)
@@ -507,6 +559,7 @@ void DisallowUartRx(void)
 
 ISR_UsartRxComplete()
 {
+	IsrEnter();
 	while (Usart.UCSRA & UCSRA_RXC_mask)
 	{
 		char receivedChar = Usart.UDR;
@@ -517,60 +570,74 @@ ISR_UsartRxComplete()
 			USART_rxBufferIn = nextInput;
 		}
 	}
+	IsrLeave();
 }
 
 
 ISR_ExtInt0()
 {
+	IsrEnter();
 	if (_extIntHandler[ExtInterruptSource0] != 0)
 	{
 		_extIntHandler[ExtInterruptSource0]();
 	}
+	IsrLeave();
 }
 
 ISR_ExtInt1()
 {
+	IsrEnter();
 	if (_extIntHandler[ExtInterruptSource1] != 0)
 	{
 		_extIntHandler[ExtInterruptSource1]();
 	}
+	IsrLeave();
 }
 
 
 ISR_Tcnt0CompareMatchA()
 {
+	IsrEnter();
 	if (_compareMatchHandler[CompareMatchSource1] != 0)
 	{
 		_compareMatchHandler[CompareMatchSource1]();
 	}
+	IsrLeave();
 }
 
 ISR_Tcnt0CompareMatchB()
 {
+	IsrEnter();
 	if (_compareMatchHandler[CompareMatchSource2] != 0)
 	{
 		_compareMatchHandler[CompareMatchSource2]();
 	}
+	IsrLeave();
 }
 
 ISR_Tcnt2CompareMatchA()
 {
+	IsrEnter();
 	if (_compareMatchHandler[CompareMatchSource3] != 0)
 	{
 		_compareMatchHandler[CompareMatchSource3]();
 	}
+	IsrLeave();
 }
 
 ISR_Tcnt2CompareMatchB()
 {
+	IsrEnter();
 	if (_compareMatchHandler[CompareMatchSource4] != 0)
 	{
 		_compareMatchHandler[CompareMatchSource4]();
 	}
+	IsrLeave();
 }
 
 ISR_Tcnt1Overflow()
 {
+
 	_timerUs += 0x7FFF; // this is the amount of us that has elapsed
 }
 
@@ -676,14 +743,20 @@ void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t
 	Usart_TraceN(id, buffer, 4);
 }
 
-void RegisterAvrMessageHandler(AvrMessageHandler handler)
+AvrMessageHandler RegisterAvrMessageHandler(AvrMessageHandler handler)
 {
-	HandleAvrMessage = handler;
+	AvrMessageHandler oldHandler = HandleAvrMessage;
+	if( handler != 0)
+	{
+		HandleAvrMessage = handler;
+	}
+	return oldHandler;
 }
 
 
-void DefaultMessageHandler(const AvrMessage* msg)
+Bool DefaultMessageHandler(const AvrMessage* msg)
 {
+	//PortB.PORT |= PIN_5_mask;
 	if (msg->MsgType == PacketType_ReadRegister)
 	{
 		
@@ -710,8 +783,10 @@ void DefaultMessageHandler(const AvrMessage* msg)
 			Usart_PutShort(header);
 		}
 		LeaveAtomic();
+		//PortB.PORT &= ~PIN_5_mask;
+		return True;
 	}
-	else if (msg->MsgType == PacketType_WriteRegister)
+	if (msg->MsgType == PacketType_WriteRegister)
 	{
 		CmdWriteReg* pWriteReg = (CmdWriteReg* )msg->Payload;
 		uint16_t status = (PacketType_WriteRegister<<8)|1;
@@ -733,7 +808,10 @@ void DefaultMessageHandler(const AvrMessage* msg)
 		
 		Usart_PutShort(status);
 		LeaveAtomic();
+	
+		return True;
 	}
+	return False;
 }
 
 

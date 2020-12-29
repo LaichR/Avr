@@ -68,7 +68,8 @@ typedef enum
 
 
 /**
-* @brief enum describing the timer devisions supported by teh function: RegisterCompareMatch
+* @brief enum describing the timer divisions supported by the function *RegisterCompareMatchInterrupt()*
+* 
 */
 typedef enum
 {
@@ -78,6 +79,7 @@ typedef enum
     TimerFrequency_Div256 = 3,
     TimerFrequency_Div1024 = 4,
 }TimerFrequency;
+
 
 typedef enum
 {
@@ -97,19 +99,26 @@ typedef enum
     MessageId_HwEvent = 1,
 } MessageId;
 
+/**
+* This enumerate defines the defined messages that are exchanged between PC and board
+*/
 typedef enum
 {
-	 PacketType_Undefined = 0,
-	 PacketType_LiftSimulatorButton = 0xA2,
-	 PacketType_TestCommand = 0xA3,
-     PacketType_RawData = 0xA4,
-     PacketType_ReadRegister = 0xA6,
-     PacketType_WriteRegister = 0xA8,
-     PacketType_TraceMassagePadLen = 0xA8,
-	 PacketType_TraceMessage = 0xA5,     
+	 PacketType_Undefined = 0,                  ///< spare
+	 PacketType_LiftSimulatorButton = 0xA2,     ///< a button on the AVR terminal application was pressed. The data is in the payload[0] byte
+	 PacketType_TestCommand = 0xA3,             ///< a test command was sent from the AVR terminal application
+     PacketType_RawData = 0xA4,                 ///< raw date is transmitted from any UART channel
+     PacketType_ReadRegister = 0xA6,            ///< read register command
+     PacketType_WriteRegister = 0xA8,           ///< write register command
+     PacketType_TraceMassagePadLen = 0xA8,      ///< The unused of this value hold the length of a trace message
+	 PacketType_TraceMessage = 0xA5,            ///< a trace message is sent from the board to the PC
 } AvrPacketType;
 
-
+/**
+* Genreic structure of a data packate that is used to exchange data between PC and Board
+* 
+* The length of the packet is restricted to 14 bytes. The available memory space is quite little!
+*/
  typedef struct AvrMessage_tag
  {
 	 AvrPacketType MsgType;
@@ -156,7 +165,7 @@ typedef enum
  /**
  * @brief Prototyp eines AvrPacketHandlers
  */
- typedef void (*AvrMessageHandler)(const AvrMessage* msg);
+ typedef Bool (*AvrMessageHandler)(const AvrMessage* msg);
 
 
  /**
@@ -185,20 +194,33 @@ typedef enum
  *
  * The framework starts the dispatch loop and allows to receive messages
  * from the PC
+ * The PB5 is set as output in order to allow LED indications
  */
  void InitializeStateEventFramework(void);
 
 /**
 * @brief Register a test handler
 * 
-* @param handler funktion
+* @param handler function
 * 
-* The handler can react on uart message sent from the PC. Note: a default handler is already installed
-* in case a custom handler is register, the default handler should be called as fallback handler. 
+* The handler can react on uart messages sent from the PC. Note: a default handler is already installed
+* In case a custom handler is registered, the default handler should be called as fallback handler. 
 * Otherwise reading and writing registers will not work anymore.
 */
 
- void RegisterAvrMessageHander(AvrMessageHandler handler);
+ AvrMessageHandler RegisterAvrMessageHandler(AvrMessageHandler handler);
+
+ /**
+ * @brief This is the default message handler which is set during initialisation of global variables.
+ * 
+ * The default message handler handles all read and write regiseter requests from the PC.
+ * Custom implementations can call this DefaultHandler. In case the return value is False, the Default handler did not do anything and it is appropriate to
+ * do something with the message.
+ * 
+ * @param msg this is the received message
+ * @return indicates if the message was handled by the implementation. 
+ */
+ Bool DefaultMessageHandler(const AvrMessage* msg);
 
  /**
  * @brief Setup exernal Interrupt source
@@ -215,9 +237,16 @@ typedef enum
 
 
  /**
+ * @brief Switch on/off the intterrupt of a specified external interrupt source without chaning its configuration
+ * 
+ */
+ void SetExtInterruptEnable(ExtInteruptSource source, Bool enable);
+
+ /**
  * @brief Execute a single measurement on the ADC. 
  * 
- * A single measurement is exeucted. The caller is blocked until the measurement completes
+ * A single measurement is started. The caller is blocked until the measurement completes.
+ * 
  * @param channel is the analog channel that is used in the measurement
  * @param Vref is the reference voltage to be used 
  * @param prescaler is the ADC prescaler. The higher the value the more time is used for the measurement and the more accurate the measurement will be.
@@ -326,11 +355,21 @@ void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t
 void Usart_PutChar(char ch);
 
 /**
-* @brief Guarantee exclusive access!
+* @brief guarantee exclusive access!
 */
 void EnterAtomic(void);
 
 void LeaveAtomic(void);
+
+/**
+* @brief mark beginning of ISR
+*/
+void IsrEnter(void);
+
+/**
+* @brief mark end of ISR
+*/
+void IsrLeave(void);
 
 
 #endif /* AVRLIB_H_ */

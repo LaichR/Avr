@@ -46,7 +46,7 @@
 
 #define ModifyReg( reg, width, pos, value)    reg = (((reg)&~BitMask(width, pos))|((value<<pos)&BitMask(width, pos )))
 
-#define ReadRegister(reg, field ) ReadRegister( reg, concat(field,width), concat(field,pos))
+#define ReadRegister(reg, field ) ReadReg( reg, concat(field,width), concat(field,pos))
 
 #define SetRegister(reg, ... )	__setReg( reg, OR(GetValue(__VA_ARGS__)))
 #define __setReg( reg, values )	reg = (uint8_t)(values);
