@@ -7,4 +7,6 @@ In the courses we use the Adafruit metro board. The metro board is compatible wi
 In [this link](https://cdn-shop.adafruit.com/product-files/2488/Adafruit+Metrol_v2_0.pdf) you can find a simple overview of the metro board board. The diagram shows the exposed pins and theire functions.
 The metro board is equiped with a atmega328p microcontroller. The datasheet of this microcontroller you can find [here](http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf)
 
-
+{% for page in site.pages %}
+{{page.title}}
+{% endfor %}
