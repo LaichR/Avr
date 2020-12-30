@@ -1,0 +1,79 @@
+\hypertarget{struct_fsm__tag}{}\doxysection{Fsm\+\_\+tag Struct Reference}
+\label{struct_fsm__tag}\index{Fsm\_tag@{Fsm\_tag}}
+
+
+Repräsentiert eine Zustandsmaschine.  
+
+
+
+
+{\ttfamily \#include $<$Avr\+Lib.\+h$>$}
+
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_fsm__tag}{Fsm\+\_\+tag}} $\ast$ \mbox{\hyperlink{struct_fsm__tag_a7eb70411183a2bad1636f49893c8af52}{Next}}
+\begin{DoxyCompactList}\small\item\em nächste registrierte Zustanndsmaschine; internal use only! \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{struct_fsm__tag_ab7668ff9f0f7f2a6cb9ed24f7f0a905b}{Rx\+Mask}}
+\begin{DoxyCompactList}\small\item\em Maske, welche angibt, welche {\itshape Prioritäyten} bearbeitet werden sollen. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{_avr_lib_8h_a13ddd1c9e6959d8921c2a03c25259c74}{State\+Handler}} \mbox{\hyperlink{struct_fsm__tag_a60c28f55103a33bcb3962fc3c5c3108d}{Current\+State}}
+\begin{DoxyCompactList}\small\item\em Funktion, welche den aktuellen Zustand representiert. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Repräsentiert eine Zustandsmaschine. 
+
+Eine oder mehrere Zustandsmaschinen können im Framework registriert werden. Beim Auftreten einer Meldung werden alle Zustandsmaschinen, welche auf diese {\itshape Event\+Source} registriert sind, notifiziert 
+
+Definition at line 177 of file Avr\+Lib.\+h.
+
+
+
+\doxysubsection{Field Documentation}
+\mbox{\Hypertarget{struct_fsm__tag_a60c28f55103a33bcb3962fc3c5c3108d}\label{struct_fsm__tag_a60c28f55103a33bcb3962fc3c5c3108d}} 
+\index{Fsm\_tag@{Fsm\_tag}!CurrentState@{CurrentState}}
+\index{CurrentState@{CurrentState}!Fsm\_tag@{Fsm\_tag}}
+\doxysubsubsection{\texorpdfstring{CurrentState}{CurrentState}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a13ddd1c9e6959d8921c2a03c25259c74}{State\+Handler}} Current\+State}
+
+
+
+Funktion, welche den aktuellen Zustand representiert. 
+
+
+
+Definition at line 181 of file Avr\+Lib.\+h.
+
+\mbox{\Hypertarget{struct_fsm__tag_a7eb70411183a2bad1636f49893c8af52}\label{struct_fsm__tag_a7eb70411183a2bad1636f49893c8af52}} 
+\index{Fsm\_tag@{Fsm\_tag}!Next@{Next}}
+\index{Next@{Next}!Fsm\_tag@{Fsm\_tag}}
+\doxysubsubsection{\texorpdfstring{Next}{Next}}
+{\footnotesize\ttfamily struct \mbox{\hyperlink{struct_fsm__tag}{Fsm\+\_\+tag}}$\ast$ Next}
+
+
+
+nächste registrierte Zustanndsmaschine; internal use only! 
+
+
+
+Definition at line 179 of file Avr\+Lib.\+h.
+
+\mbox{\Hypertarget{struct_fsm__tag_ab7668ff9f0f7f2a6cb9ed24f7f0a905b}\label{struct_fsm__tag_ab7668ff9f0f7f2a6cb9ed24f7f0a905b}} 
+\index{Fsm\_tag@{Fsm\_tag}!RxMask@{RxMask}}
+\index{RxMask@{RxMask}!Fsm\_tag@{Fsm\_tag}}
+\doxysubsubsection{\texorpdfstring{RxMask}{RxMask}}
+{\footnotesize\ttfamily uint8\+\_\+t Rx\+Mask}
+
+
+
+Maske, welche angibt, welche {\itshape Prioritäyten} bearbeitet werden sollen. 
+
+
+
+Definition at line 180 of file Avr\+Lib.\+h.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/rolfl/github/\+Avr/\+Tool\+Chain/\+Avr\+Lib/include/\mbox{\hyperlink{_avr_lib_8h}{Avr\+Lib.\+h}}\end{DoxyCompactItemize}

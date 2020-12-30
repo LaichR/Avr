@@ -1,0 +1,753 @@
+\hypertarget{_avr_lib_8c}{}\doxysection{C\+:/\+Users/rolfl/github/\+Avr/\+Avr\+Lib/\+Avr\+Lib.c File Reference}
+\label{_avr_lib_8c}\index{C:/Users/rolfl/github/Avr/AvrLib/AvrLib.c@{C:/Users/rolfl/github/Avr/AvrLib/AvrLib.c}}
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$inttypes.\+h$>$}\newline
+{\ttfamily \#include $<$avr/io.\+h$>$}\newline
+{\ttfamily \#include $<$Atmega328\+P.\+h$>$}\newline
+{\ttfamily \#include $<$avr/interrupt.\+h$>$}\newline
+{\ttfamily \#include $<$Avr\+Lib.\+h$>$}\newline
+{\ttfamily \#include $<$Register\+Access.\+h$>$}\newline
+{\ttfamily \#include $<$util/delay.\+h$>$}\newline
+\doxysubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_cmd_write_reg}{Cmd\+Write\+Reg}}
+\item 
+struct \mbox{\hyperlink{struct_cmd_read_reg}{Cmd\+Read\+Reg}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_avr_lib_8c_a43bafb28b29491ec7f871319b5a3b2f8}{F\+\_\+\+CPU}}~16000000
+\begin{DoxyCompactList}\small\item\em Uart\+Handler.\+c. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{_avr_lib_8c_ac0999c0821d14cfab43e6f3c778c2b95}{USART\+\_\+\+RX\+\_\+\+BUFFER\+\_\+\+SIZE}}~32
+\item 
+\#define \mbox{\hyperlink{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}{USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}}~32
+\item 
+\#define \mbox{\hyperlink{_avr_lib_8c_a6fed9d9c8d3db2b0bfed3ae69b914827}{Filled\+Tx\+Entries}}()~(((USART\+\_\+tx\+Buffer\+In + \mbox{\hyperlink{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}{USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}}) -\/ USART\+\_\+tx\+Buffer\+Out)\%\mbox{\hyperlink{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}{USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}})
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_add0902722b85415d9271d54289b2af87}{Send\+Message}} (uint8\+\_\+t prio, uint8\+\_\+t id, uint8\+\_\+t msg\+Low, uint8\+\_\+t msg\+High)
+\begin{DoxyCompactList}\small\item\em Put a message into the queue. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} \mbox{\hyperlink{_avr_lib_8c_a4e2c9921140ec91965eb41df4f2e79f3}{Get\+Message}} (\mbox{\hyperlink{_avr_lib_8h_adf7217b0a4ee9cfd5817262f7b200cc9}{Message}} $\ast$msg)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a4a93759a841d46df0a83cb7fee321783}{Handle\+Message}} (char received\+Data)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a5778a2c9bd3532f9063233f1ae571771}{Process\+Message}} (uint8\+\_\+t msg\+Type, uint8\+\_\+t $\ast$msg, uint8\+\_\+t msg\+Len)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a8914817066cdfdab2483afdd3ecc8ada}{Usart\+\_\+\+Put\+Short}} (uint16\+\_\+t value)
+\item 
+uint16\+\_\+t \mbox{\hyperlink{_avr_lib_8c_a81a5f6d0fbdccf837ea80a52da409049}{Measure\+Once}} (\mbox{\hyperlink{_atmega328_p_8h_aced27cb9f5de7573f7ef7c25909b3084}{Analog\+Channel\+Selection}} channel, \mbox{\hyperlink{_atmega328_p_8h_a4ac9a19089919bbb987c7d53d373465c}{Reference\+Selection}} Vref, \mbox{\hyperlink{_atmega328_p_8h_a5fdf9101a55da8ca267845a362e3d1ef}{Adc\+Prescaler}} prescaler)
+\begin{DoxyCompactList}\small\item\em Execute a single measurement on the ADC. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a689c8adc347f1499e90f601a55975c8d}{Register\+External\+Interupt\+Handler}} (\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}} source, \mbox{\hyperlink{_avr_lib_8h_a4c0d7aa7c14c0567c522c664cd4e0b42}{Ext\+Int\+Trigger}} trigger, \mbox{\hyperlink{_avr_lib_8h_a70c39f26249a6aa73d608f47e34fe346}{Isr\+Handler}} handler)
+\begin{DoxyCompactList}\small\item\em Setup exernal Interrupt source. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_ad294b58ea2c279e31c0dde21101a5c83}{Unregister\+External\+Interrupt\+Handler}} (\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}} source)
+\begin{DoxyCompactList}\small\item\em Disable intterupts and unregister a previously registered handler. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_abab4c4585c5bc06434241babc8460e7b}{Set\+Ext\+Interrupt\+Enable}} (\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}} source, \mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} enable)
+\begin{DoxyCompactList}\small\item\em Change the behavior of an initially configured external interrupt. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_aae6299783f51d753125be1a8c2d830be}{Register\+Compare\+Match\+Interrupt}} (\mbox{\hyperlink{_avr_lib_8h_a0ce138b43123a0eee6e73817fd7fdad6}{Compare\+Match\+Source}} source, \mbox{\hyperlink{_avr_lib_8h_aa3faf8a487b0f96253c1f91b127fe692}{Timer\+Frequency}} frequency, uint8\+\_\+t match, \mbox{\hyperlink{_avr_lib_8h_a70c39f26249a6aa73d608f47e34fe346}{Isr\+Handler}} handler)
+\begin{DoxyCompactList}\small\item\em Setup compare match interrupt on one of four available interrupt sources. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_acc879551df04aa1bcb4eadb27940e316}{Unregister\+Compare\+Match\+Interrupt}} (\mbox{\hyperlink{_avr_lib_8h_a0ce138b43123a0eee6e73817fd7fdad6}{Compare\+Match\+Source}} source)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_ab8c6d3420ff0638bfc805b6923c9de59}{Initialize\+State\+Event\+Framework}} (void)
+\begin{DoxyCompactList}\small\item\em Initialisierung des Anfangszustandes. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_aa7af134495334451f5e03dde3166ed8a}{Isr\+Enter}} ()
+\begin{DoxyCompactList}\small\item\em mark beginning of ISR \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a8b25b1e93b8abeba01759090ce24e9b4}{Isr\+Leave}} ()
+\begin{DoxyCompactList}\small\item\em mark end of ISR \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a28f242ca7c35da297903671c944702f8}{Enter\+Atomic}} (void)
+\begin{DoxyCompactList}\small\item\em guarantee exclusive access! \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a39c9d65538111537b4ba8ec22a4f5d24}{Leave\+Atomic}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a4a217d8dc26f12aedbfb56d503e2083b}{Start\+Timer}} (void)
+\begin{DoxyCompactList}\small\item\em Start the Timer on Tcnt1 and reset internal counters. \end{DoxyCompactList}\item 
+uint32\+\_\+t \mbox{\hyperlink{_avr_lib_8c_ae906eb0b63f420e1d52ae1872339830c}{Get\+Elapsed\+Time}} (void)
+\begin{DoxyCompactList}\small\item\em Get the elapsed time since the last call to Start\+Timer. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_acb441b04bb3e49642c14dd9987538778}{Set\+State}} (\mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} $\ast$fsm, \mbox{\hyperlink{_avr_lib_8h_a13ddd1c9e6959d8921c2a03c25259c74}{State\+Handler}} handler)
+\begin{DoxyCompactList}\small\item\em Funktion für das Ausführen eine {\itshape Zustandübergangs} \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_acf0585ec1d8dfc68002eb0e357aec8ea}{Register\+Fsm}} (\mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} $\ast$fsm)
+\begin{DoxyCompactList}\small\item\em register a new finite state machine; \end{DoxyCompactList}\item 
+\mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} \mbox{\hyperlink{_avr_lib_8c_a91b47cbb9f1e8a829dfac70b0aee3896}{Dispatch\+Event}} (void)
+\begin{DoxyCompactList}\small\item\em Funktion um ein event an die registrierten Zustandsmaschinen zu verteilen. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_abb586ce66a7472c329436a697b08afa7}{Usart\+\_\+\+Init}} (uint32\+\_\+t baudrate)
+\begin{DoxyCompactList}\small\item\em initialize port D to use the uart \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a03b563cafd3a70587ff8d9465578736b}{Usart\+\_\+\+Put\+Char}} (char ch)
+\begin{DoxyCompactList}\small\item\em Put one charactor to the Uart. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a9a0337485f778f9303e01818b2547d02}{\+\_\+\+\_\+vector\+\_\+19}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a25169aec28158deda372c5f4d8696b6d}{Allow\+Uart\+Rx}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a7a6b7c45c2b33f36238d5676dbc1fdf8}{Disallow\+Uart\+Rx}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_aa1d4b90dd2d41dcba7b76fdb15be3279}{\+\_\+\+\_\+vector\+\_\+18}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a63cfe47a79279085ee59b1644cf9ab60}{\+\_\+\+\_\+vector\+\_\+1}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a6ae4ad8192e6928ac4f7e3e59001e53a}{\+\_\+\+\_\+vector\+\_\+2}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_ad2205f131ddc00a55862357d04b64e24}{\+\_\+\+\_\+vector\+\_\+14}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a267ca92fcda9b5965694b9c8b940d20e}{\+\_\+\+\_\+vector\+\_\+15}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a452562d7ce876fc3a4943bd345dd9d9c}{\+\_\+\+\_\+vector\+\_\+7}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a43b49e7a23a6076f63106b90b6fadfe3}{\+\_\+\+\_\+vector\+\_\+8}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_ac4fa6e85d9f21e9326904d2b202c82e0}{\+\_\+\+\_\+vector\+\_\+13}} (void)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a683398ef655b92d30d7e8605e0262630}{Usart\+\_\+\+TraceN}} (uint16\+\_\+t id, const uint8\+\_\+t $\ast$p\+Val, int8\+\_\+t len)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a13526c993e9f5423f81f0778e813fea6}{Usart\+\_\+\+Trace0}} (uint16\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Don\textquotesingle{}t bother about these implementations; you should not use them directly; that\textquotesingle{}s up to the build process! \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{_avr_lib_8c_a7920cad57328487833bec6dfc8169ff0}{Usart\+\_\+\+Trace1}} (uint16\+\_\+t id, uint8\+\_\+t ch)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a76fa4637266422b10e127082d5ede5af}{Usart\+\_\+\+Trace2}} (uint16\+\_\+t id, uint8\+\_\+t val1, uint8\+\_\+t val2)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_aff59557715efa0b5789b84418a503202}{Usart\+\_\+\+Trace3}} (uint16\+\_\+t id, uint8\+\_\+t val1, uint8\+\_\+t val2, uint8\+\_\+t val3)
+\item 
+void \mbox{\hyperlink{_avr_lib_8c_a82e177e9c019be8b539490050cce6641}{Usart\+\_\+\+Trace4}} (uint16\+\_\+t id, uint8\+\_\+t val1, uint8\+\_\+t val2, uint8\+\_\+t val3, uint8\+\_\+t val4)
+\item 
+\mbox{\hyperlink{_avr_lib_8h_a7b883ddec9db2ef9aff1d336b0b4be3b}{Avr\+Message\+Handler}} \mbox{\hyperlink{_avr_lib_8c_a250b4b7a63e26fd06875a2ae7f769603}{Register\+Avr\+Message\+Handler}} (\mbox{\hyperlink{_avr_lib_8h_a7b883ddec9db2ef9aff1d336b0b4be3b}{Avr\+Message\+Handler}} handler)
+\begin{DoxyCompactList}\small\item\em Register a test handler. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} \mbox{\hyperlink{_avr_lib_8c_a0e58fe56e60a05f16b28a549f5fdae51}{Default\+Message\+Handler}} (const \mbox{\hyperlink{_avr_lib_8h_a02469724fe40bcaa93405f4d035a666a}{Avr\+Message}} $\ast$msg)
+\begin{DoxyCompactList}\small\item\em This is the default message handler which is set during initialisation of global variables. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} \mbox{\hyperlink{_avr_lib_8c_a915c5dd805b9fe49be4ca3fcd55b5e31}{Test\+Handler}} = \{ .Next = 0, .Rx\+Mask = 1, .Current\+State = 0 \}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_avr_lib_8c_a43bafb28b29491ec7f871319b5a3b2f8}\label{_avr_lib_8c_a43bafb28b29491ec7f871319b5a3b2f8}} 
+\index{AvrLib.c@{AvrLib.c}!F\_CPU@{F\_CPU}}
+\index{F\_CPU@{F\_CPU}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{F\_CPU}{F\_CPU}}
+{\footnotesize\ttfamily \#define F\+\_\+\+CPU~16000000}
+
+
+
+Uart\+Handler.\+c. 
+
+Created\+: 12.\+11.\+2019 09\+:12\+:23 Author\+: rolfl 
+
+Definition at line 23 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a6fed9d9c8d3db2b0bfed3ae69b914827}\label{_avr_lib_8c_a6fed9d9c8d3db2b0bfed3ae69b914827}} 
+\index{AvrLib.c@{AvrLib.c}!FilledTxEntries@{FilledTxEntries}}
+\index{FilledTxEntries@{FilledTxEntries}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{FilledTxEntries}{FilledTxEntries}}
+{\footnotesize\ttfamily \#define Filled\+Tx\+Entries(\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})~(((USART\+\_\+tx\+Buffer\+In + \mbox{\hyperlink{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}{USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}}) -\/ USART\+\_\+tx\+Buffer\+Out)\%\mbox{\hyperlink{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}{USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}})}
+
+
+
+Definition at line 48 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ac0999c0821d14cfab43e6f3c778c2b95}\label{_avr_lib_8c_ac0999c0821d14cfab43e6f3c778c2b95}} 
+\index{AvrLib.c@{AvrLib.c}!USART\_RX\_BUFFER\_SIZE@{USART\_RX\_BUFFER\_SIZE}}
+\index{USART\_RX\_BUFFER\_SIZE@{USART\_RX\_BUFFER\_SIZE}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{USART\_RX\_BUFFER\_SIZE}{USART\_RX\_BUFFER\_SIZE}}
+{\footnotesize\ttfamily \#define USART\+\_\+\+RX\+\_\+\+BUFFER\+\_\+\+SIZE~32}
+
+
+
+Definition at line 42 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}\label{_avr_lib_8c_a21d527450b438bba8dab02e03f021ee3}} 
+\index{AvrLib.c@{AvrLib.c}!USART\_TX\_BUFFER\_SIZE@{USART\_TX\_BUFFER\_SIZE}}
+\index{USART\_TX\_BUFFER\_SIZE@{USART\_TX\_BUFFER\_SIZE}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{USART\_TX\_BUFFER\_SIZE}{USART\_TX\_BUFFER\_SIZE}}
+{\footnotesize\ttfamily \#define USART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE~32}
+
+
+
+Definition at line 43 of file Avr\+Lib.\+c.
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_avr_lib_8c_a63cfe47a79279085ee59b1644cf9ab60}\label{_avr_lib_8c_a63cfe47a79279085ee59b1644cf9ab60}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_1@{\_\_vector\_1}}
+\index{\_\_vector\_1@{\_\_vector\_1}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_1()}{\_\_vector\_1()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+1 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 577 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ac4fa6e85d9f21e9326904d2b202c82e0}\label{_avr_lib_8c_ac4fa6e85d9f21e9326904d2b202c82e0}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_13@{\_\_vector\_13}}
+\index{\_\_vector\_13@{\_\_vector\_13}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_13()}{\_\_vector\_13()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+13 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 638 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ad2205f131ddc00a55862357d04b64e24}\label{_avr_lib_8c_ad2205f131ddc00a55862357d04b64e24}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_14@{\_\_vector\_14}}
+\index{\_\_vector\_14@{\_\_vector\_14}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_14()}{\_\_vector\_14()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+14 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 598 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a267ca92fcda9b5965694b9c8b940d20e}\label{_avr_lib_8c_a267ca92fcda9b5965694b9c8b940d20e}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_15@{\_\_vector\_15}}
+\index{\_\_vector\_15@{\_\_vector\_15}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_15()}{\_\_vector\_15()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+15 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 608 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_aa1d4b90dd2d41dcba7b76fdb15be3279}\label{_avr_lib_8c_aa1d4b90dd2d41dcba7b76fdb15be3279}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_18@{\_\_vector\_18}}
+\index{\_\_vector\_18@{\_\_vector\_18}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_18()}{\_\_vector\_18()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+18 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 560 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a9a0337485f778f9303e01818b2547d02}\label{_avr_lib_8c_a9a0337485f778f9303e01818b2547d02}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_19@{\_\_vector\_19}}
+\index{\_\_vector\_19@{\_\_vector\_19}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_19()}{\_\_vector\_19()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+19 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 534 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a6ae4ad8192e6928ac4f7e3e59001e53a}\label{_avr_lib_8c_a6ae4ad8192e6928ac4f7e3e59001e53a}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_2@{\_\_vector\_2}}
+\index{\_\_vector\_2@{\_\_vector\_2}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_2()}{\_\_vector\_2()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+2 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 587 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a452562d7ce876fc3a4943bd345dd9d9c}\label{_avr_lib_8c_a452562d7ce876fc3a4943bd345dd9d9c}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_7@{\_\_vector\_7}}
+\index{\_\_vector\_7@{\_\_vector\_7}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_7()}{\_\_vector\_7()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+7 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 618 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a43b49e7a23a6076f63106b90b6fadfe3}\label{_avr_lib_8c_a43b49e7a23a6076f63106b90b6fadfe3}} 
+\index{AvrLib.c@{AvrLib.c}!\_\_vector\_8@{\_\_vector\_8}}
+\index{\_\_vector\_8@{\_\_vector\_8}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{\_\_vector\_8()}{\_\_vector\_8()}}
+{\footnotesize\ttfamily void \+\_\+\+\_\+vector\+\_\+8 (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 628 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a25169aec28158deda372c5f4d8696b6d}\label{_avr_lib_8c_a25169aec28158deda372c5f4d8696b6d}} 
+\index{AvrLib.c@{AvrLib.c}!AllowUartRx@{AllowUartRx}}
+\index{AllowUartRx@{AllowUartRx}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{AllowUartRx()}{AllowUartRx()}}
+{\footnotesize\ttfamily void Allow\+Uart\+Rx (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 549 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a0e58fe56e60a05f16b28a549f5fdae51}\label{_avr_lib_8c_a0e58fe56e60a05f16b28a549f5fdae51}} 
+\index{AvrLib.c@{AvrLib.c}!DefaultMessageHandler@{DefaultMessageHandler}}
+\index{DefaultMessageHandler@{DefaultMessageHandler}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{DefaultMessageHandler()}{DefaultMessageHandler()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} Default\+Message\+Handler (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{_avr_lib_8h_a02469724fe40bcaa93405f4d035a666a}{Avr\+Message}} $\ast$}]{msg }\end{DoxyParamCaption})}
+
+
+
+This is the default message handler which is set during initialisation of global variables. 
+
+The default message handler handles all read and write regiseter requests from the PC. Custom implementations can call this Default\+Handler. In case the return value is False, the Default handler did not do anything and it is appropriate to do something with the message.
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & this is the received message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+indicates if the message was handled by the implementation. 
+\end{DoxyReturn}
+
+
+Definition at line 757 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a7a6b7c45c2b33f36238d5676dbc1fdf8}\label{_avr_lib_8c_a7a6b7c45c2b33f36238d5676dbc1fdf8}} 
+\index{AvrLib.c@{AvrLib.c}!DisallowUartRx@{DisallowUartRx}}
+\index{DisallowUartRx@{DisallowUartRx}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{DisallowUartRx()}{DisallowUartRx()}}
+{\footnotesize\ttfamily void Disallow\+Uart\+Rx (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 554 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a91b47cbb9f1e8a829dfac70b0aee3896}\label{_avr_lib_8c_a91b47cbb9f1e8a829dfac70b0aee3896}} 
+\index{AvrLib.c@{AvrLib.c}!DispatchEvent@{DispatchEvent}}
+\index{DispatchEvent@{DispatchEvent}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{DispatchEvent()}{DispatchEvent()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} Dispatch\+Event (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Funktion um ein event an die registrierten Zustandsmaschinen zu verteilen. 
+
+\begin{DoxyReturn}{Returns}
+Status welcher angibt, ob die Meldungsqueue leer war;
+\begin{DoxyItemize}
+\item False\+: es war keine Meldung in der Queue;
+\item True\+: eine Meldung wurde dispatched. Der return wert kann sinnvoll sein, um den Prozessor in den sleep mode zu stellen. 
+\end{DoxyItemize}
+\end{DoxyReturn}
+
+
+Definition at line 379 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a28f242ca7c35da297903671c944702f8}\label{_avr_lib_8c_a28f242ca7c35da297903671c944702f8}} 
+\index{AvrLib.c@{AvrLib.c}!EnterAtomic@{EnterAtomic}}
+\index{EnterAtomic@{EnterAtomic}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{EnterAtomic()}{EnterAtomic()}}
+{\footnotesize\ttfamily void Enter\+Atomic (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+guarantee exclusive access! 
+
+
+
+Definition at line 264 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ae906eb0b63f420e1d52ae1872339830c}\label{_avr_lib_8c_ae906eb0b63f420e1d52ae1872339830c}} 
+\index{AvrLib.c@{AvrLib.c}!GetElapsedTime@{GetElapsedTime}}
+\index{GetElapsedTime@{GetElapsedTime}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{GetElapsedTime()}{GetElapsedTime()}}
+{\footnotesize\ttfamily uint32\+\_\+t Get\+Elapsed\+Time (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Get the elapsed time since the last call to Start\+Timer. 
+
+\begin{DoxyReturn}{Returns}
+time in us 
+\end{DoxyReturn}
+
+
+Definition at line 344 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a4e2c9921140ec91965eb41df4f2e79f3}\label{_avr_lib_8c_a4e2c9921140ec91965eb41df4f2e79f3}} 
+\index{AvrLib.c@{AvrLib.c}!GetMessage@{GetMessage}}
+\index{GetMessage@{GetMessage}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{GetMessage()}{GetMessage()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}} Get\+Message (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_adf7217b0a4ee9cfd5817262f7b200cc9}{Message}} $\ast$}]{msg }\end{DoxyParamCaption})}
+
+
+
+Definition at line 470 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a4a93759a841d46df0a83cb7fee321783}\label{_avr_lib_8c_a4a93759a841d46df0a83cb7fee321783}} 
+\index{AvrLib.c@{AvrLib.c}!HandleMessage@{HandleMessage}}
+\index{HandleMessage@{HandleMessage}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{HandleMessage()}{HandleMessage()}}
+{\footnotesize\ttfamily void Handle\+Message (\begin{DoxyParamCaption}\item[{char}]{received\+Data }\end{DoxyParamCaption})}
+
+
+
+Definition at line 288 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ab8c6d3420ff0638bfc805b6923c9de59}\label{_avr_lib_8c_ab8c6d3420ff0638bfc805b6923c9de59}} 
+\index{AvrLib.c@{AvrLib.c}!InitializeStateEventFramework@{InitializeStateEventFramework}}
+\index{InitializeStateEventFramework@{InitializeStateEventFramework}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{InitializeStateEventFramework()}{InitializeStateEventFramework()}}
+{\footnotesize\ttfamily void Initialize\+State\+Event\+Framework (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Initialisierung des Anfangszustandes. 
+
+Initialize Framework.
+
+Die Funktion Initialize\+Start() started das Framework. 
+
+Definition at line 233 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_aa7af134495334451f5e03dde3166ed8a}\label{_avr_lib_8c_aa7af134495334451f5e03dde3166ed8a}} 
+\index{AvrLib.c@{AvrLib.c}!IsrEnter@{IsrEnter}}
+\index{IsrEnter@{IsrEnter}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{IsrEnter()}{IsrEnter()}}
+{\footnotesize\ttfamily void Isr\+Enter (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+mark beginning of ISR 
+
+
+
+Definition at line 254 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a8b25b1e93b8abeba01759090ce24e9b4}\label{_avr_lib_8c_a8b25b1e93b8abeba01759090ce24e9b4}} 
+\index{AvrLib.c@{AvrLib.c}!IsrLeave@{IsrLeave}}
+\index{IsrLeave@{IsrLeave}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{IsrLeave()}{IsrLeave()}}
+{\footnotesize\ttfamily void Isr\+Leave (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+mark end of ISR 
+
+
+
+Definition at line 259 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a39c9d65538111537b4ba8ec22a4f5d24}\label{_avr_lib_8c_a39c9d65538111537b4ba8ec22a4f5d24}} 
+\index{AvrLib.c@{AvrLib.c}!LeaveAtomic@{LeaveAtomic}}
+\index{LeaveAtomic@{LeaveAtomic}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{LeaveAtomic()}{LeaveAtomic()}}
+{\footnotesize\ttfamily void Leave\+Atomic (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line 274 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a81a5f6d0fbdccf837ea80a52da409049}\label{_avr_lib_8c_a81a5f6d0fbdccf837ea80a52da409049}} 
+\index{AvrLib.c@{AvrLib.c}!MeasureOnce@{MeasureOnce}}
+\index{MeasureOnce@{MeasureOnce}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{MeasureOnce()}{MeasureOnce()}}
+{\footnotesize\ttfamily uint16\+\_\+t Measure\+Once (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_atmega328_p_8h_aced27cb9f5de7573f7ef7c25909b3084}{Analog\+Channel\+Selection}}}]{channel,  }\item[{\mbox{\hyperlink{_atmega328_p_8h_a4ac9a19089919bbb987c7d53d373465c}{Reference\+Selection}}}]{Vref,  }\item[{\mbox{\hyperlink{_atmega328_p_8h_a5fdf9101a55da8ca267845a362e3d1ef}{Adc\+Prescaler}}}]{prescaler }\end{DoxyParamCaption})}
+
+
+
+Execute a single measurement on the ADC. 
+
+A single measurement is started. The caller is blocked until the measurement completes.
+
+
+\begin{DoxyParams}{Parameters}
+{\em channel} & is the analog channel that is used in the measurement \\
+\hline
+{\em Vref} & is the reference voltage to be used \\
+\hline
+{\em prescaler} & is the ADC prescaler. The higher the value the more time is used for the measurement and the more accurate the measurement will be. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+measured value from ADC 
+\end{DoxyReturn}
+
+
+Definition at line 120 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a5778a2c9bd3532f9063233f1ae571771}\label{_avr_lib_8c_a5778a2c9bd3532f9063233f1ae571771}} 
+\index{AvrLib.c@{AvrLib.c}!ProcessMessage@{ProcessMessage}}
+\index{ProcessMessage@{ProcessMessage}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{ProcessMessage()}{ProcessMessage()}}
+{\footnotesize\ttfamily void Process\+Message (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{msg\+Type,  }\item[{uint8\+\_\+t $\ast$}]{msg,  }\item[{uint8\+\_\+t}]{msg\+Len }\end{DoxyParamCaption})}
+
+
+
+Definition at line 318 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a250b4b7a63e26fd06875a2ae7f769603}\label{_avr_lib_8c_a250b4b7a63e26fd06875a2ae7f769603}} 
+\index{AvrLib.c@{AvrLib.c}!RegisterAvrMessageHandler@{RegisterAvrMessageHandler}}
+\index{RegisterAvrMessageHandler@{RegisterAvrMessageHandler}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{RegisterAvrMessageHandler()}{RegisterAvrMessageHandler()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a7b883ddec9db2ef9aff1d336b0b4be3b}{Avr\+Message\+Handler}} Register\+Avr\+Message\+Handler (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a7b883ddec9db2ef9aff1d336b0b4be3b}{Avr\+Message\+Handler}}}]{handler }\end{DoxyParamCaption})}
+
+
+
+Register a test handler. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em handler} & function\\
+\hline
+\end{DoxyParams}
+The handler can react on uart messages sent from the PC. Note\+: a default handler is already installed In case a custom handler is registered, the default handler should be called as fallback handler. Otherwise reading and writing registers will not work anymore. 
+
+Definition at line 746 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_aae6299783f51d753125be1a8c2d830be}\label{_avr_lib_8c_aae6299783f51d753125be1a8c2d830be}} 
+\index{AvrLib.c@{AvrLib.c}!RegisterCompareMatchInterrupt@{RegisterCompareMatchInterrupt}}
+\index{RegisterCompareMatchInterrupt@{RegisterCompareMatchInterrupt}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{RegisterCompareMatchInterrupt()}{RegisterCompareMatchInterrupt()}}
+{\footnotesize\ttfamily void Register\+Compare\+Match\+Interrupt (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a0ce138b43123a0eee6e73817fd7fdad6}{Compare\+Match\+Source}}}]{source,  }\item[{\mbox{\hyperlink{_avr_lib_8h_aa3faf8a487b0f96253c1f91b127fe692}{Timer\+Frequency}}}]{frequency,  }\item[{uint8\+\_\+t}]{match,  }\item[{\mbox{\hyperlink{_avr_lib_8h_a70c39f26249a6aa73d608f47e34fe346}{Isr\+Handler}}}]{handler }\end{DoxyParamCaption})}
+
+
+
+Setup compare match interrupt on one of four available interrupt sources. 
+
+This function sets up the timer block in order to generate compare match interrupts Note\+: Compare\+Match\+Source0 and Compare\+Match\+Source1 refer to the HW Tcnt0 Compare\+Match\+Source2 and Compare\+Match\+Source3 refer to Tcnt1. Changing the frequency changes the frequenty of both interrupt sources of the timer! Apparently Compare\+Match1 only is operational if Compare\+Match0 is running and Compare\+Match3 is only operational if Comparematch2 is running. This seems to be a HW constraint.
+
+
+\begin{DoxyParams}{Parameters}
+{\em source} & source of comparematch interrupt \\
+\hline
+{\em frequency} & division factor for timer. The base frequency is 16Mhz \\
+\hline
+{\em handler} & the function that does the work \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 194 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a689c8adc347f1499e90f601a55975c8d}\label{_avr_lib_8c_a689c8adc347f1499e90f601a55975c8d}} 
+\index{AvrLib.c@{AvrLib.c}!RegisterExternalInteruptHandler@{RegisterExternalInteruptHandler}}
+\index{RegisterExternalInteruptHandler@{RegisterExternalInteruptHandler}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{RegisterExternalInteruptHandler()}{RegisterExternalInteruptHandler()}}
+{\footnotesize\ttfamily void Register\+External\+Interupt\+Handler (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}}}]{source,  }\item[{\mbox{\hyperlink{_avr_lib_8h_a4c0d7aa7c14c0567c522c664cd4e0b42}{Ext\+Int\+Trigger}}}]{trigger,  }\item[{\mbox{\hyperlink{_avr_lib_8h_a70c39f26249a6aa73d608f47e34fe346}{Isr\+Handler}}}]{handler }\end{DoxyParamCaption})}
+
+
+
+Setup exernal Interrupt source. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em source} & indicates the interrupt source, on Atmega328 this might be Int0 or Int1 \\
+\hline
+{\em trigger} & specifies, what change triggers the interrupt (raising, falling, any, low) \\
+\hline
+{\em handler} & this is the function that handles the event\\
+\hline
+\end{DoxyParams}
+Setup external interrupt source. This includes the configuration of the HW and the enabling of the interrupts; 
+
+Definition at line 139 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_acf0585ec1d8dfc68002eb0e357aec8ea}\label{_avr_lib_8c_acf0585ec1d8dfc68002eb0e357aec8ea}} 
+\index{AvrLib.c@{AvrLib.c}!RegisterFsm@{RegisterFsm}}
+\index{RegisterFsm@{RegisterFsm}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{RegisterFsm()}{RegisterFsm()}}
+{\footnotesize\ttfamily void Register\+Fsm (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} $\ast$}]{fsm }\end{DoxyParamCaption})}
+
+
+
+register a new finite state machine; 
+
+Registriert eine Zustandsmaschine im Framework.
+
+This function will never be called from ISR context; hence no need to protect 
+
+Definition at line 365 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_add0902722b85415d9271d54289b2af87}\label{_avr_lib_8c_add0902722b85415d9271d54289b2af87}} 
+\index{AvrLib.c@{AvrLib.c}!SendMessage@{SendMessage}}
+\index{SendMessage@{SendMessage}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{SendMessage()}{SendMessage()}}
+{\footnotesize\ttfamily void Send\+Message (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{prio,  }\item[{uint8\+\_\+t}]{id,  }\item[{uint8\+\_\+t}]{msg\+Low,  }\item[{uint8\+\_\+t}]{msg\+High }\end{DoxyParamCaption})}
+
+
+
+Put a message into the queue. 
+
+Funktion zum Senden einer Meldung. 
+
+Definition at line 418 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_abab4c4585c5bc06434241babc8460e7b}\label{_avr_lib_8c_abab4c4585c5bc06434241babc8460e7b}} 
+\index{AvrLib.c@{AvrLib.c}!SetExtInterruptEnable@{SetExtInterruptEnable}}
+\index{SetExtInterruptEnable@{SetExtInterruptEnable}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{SetExtInterruptEnable()}{SetExtInterruptEnable()}}
+{\footnotesize\ttfamily void Set\+Ext\+Interrupt\+Enable (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}}}]{source,  }\item[{\mbox{\hyperlink{_avr_lib_8h_a39db6982619d623273fad8a383489309}{Bool}}}]{enable }\end{DoxyParamCaption})}
+
+
+
+Change the behavior of an initially configured external interrupt. 
+
+Switch on/off the intterrupt of a specified external interrupt source without chaning its configuration. 
+
+Definition at line 164 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_acb441b04bb3e49642c14dd9987538778}\label{_avr_lib_8c_acb441b04bb3e49642c14dd9987538778}} 
+\index{AvrLib.c@{AvrLib.c}!SetState@{SetState}}
+\index{SetState@{SetState}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{SetState()}{SetState()}}
+{\footnotesize\ttfamily void Set\+State (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} $\ast$}]{fsm,  }\item[{\mbox{\hyperlink{_avr_lib_8h_a13ddd1c9e6959d8921c2a03c25259c74}{State\+Handler}}}]{state }\end{DoxyParamCaption})}
+
+
+
+Funktion für das Ausführen eine {\itshape Zustandübergangs} 
+
+
+\begin{DoxyParams}{Parameters}
+{\em fsm} & Zuststandsmaschine, welche den Zustandsübergang ausführen soll \\
+\hline
+{\em state} & Funktion, welche den neuen Zustand implementiert \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 353 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a4a217d8dc26f12aedbfb56d503e2083b}\label{_avr_lib_8c_a4a217d8dc26f12aedbfb56d503e2083b}} 
+\index{AvrLib.c@{AvrLib.c}!StartTimer@{StartTimer}}
+\index{StartTimer@{StartTimer}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{StartTimer()}{StartTimer()}}
+{\footnotesize\ttfamily void Start\+Timer (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Start the Timer on Tcnt1 and reset internal counters. 
+
+Tcnt1 holds a 16bit counter. In case the counter overflows, a int32 counter variable is incremented. The counter variable is supposed to refelct the us since the last start of the counter! (Timer-\/\+Frequency is set to 2Mhz) The timer variable will hence overflow every 2$^\wedge$32 us 4295s $>$ 1h 
+
+Definition at line 336 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_acc879551df04aa1bcb4eadb27940e316}\label{_avr_lib_8c_acc879551df04aa1bcb4eadb27940e316}} 
+\index{AvrLib.c@{AvrLib.c}!UnregisterCompareMatchInterrupt@{UnregisterCompareMatchInterrupt}}
+\index{UnregisterCompareMatchInterrupt@{UnregisterCompareMatchInterrupt}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{UnregisterCompareMatchInterrupt()}{UnregisterCompareMatchInterrupt()}}
+{\footnotesize\ttfamily void Unregister\+Compare\+Match\+Interrupt (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a0ce138b43123a0eee6e73817fd7fdad6}{Compare\+Match\+Source}}}]{source }\end{DoxyParamCaption})}
+
+
+
+Definition at line 217 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_ad294b58ea2c279e31c0dde21101a5c83}\label{_avr_lib_8c_ad294b58ea2c279e31c0dde21101a5c83}} 
+\index{AvrLib.c@{AvrLib.c}!UnregisterExternalInterruptHandler@{UnregisterExternalInterruptHandler}}
+\index{UnregisterExternalInterruptHandler@{UnregisterExternalInterruptHandler}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{UnregisterExternalInterruptHandler()}{UnregisterExternalInterruptHandler()}}
+{\footnotesize\ttfamily void Unregister\+External\+Interrupt\+Handler (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{_avr_lib_8h_a4a9d6fbfc1595014e0074626b0688601}{Ext\+Interupt\+Source}}}]{source }\end{DoxyParamCaption})}
+
+
+
+Disable intterupts and unregister a previously registered handler. 
+
+
+
+Definition at line 152 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_abb586ce66a7472c329436a697b08afa7}\label{_avr_lib_8c_abb586ce66a7472c329436a697b08afa7}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Init@{Usart\_Init}}
+\index{Usart\_Init@{Usart\_Init}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Init()}{Usart\_Init()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Init (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{baudrate }\end{DoxyParamCaption})}
+
+
+
+initialize port D to use the uart 
+
+
+
+Definition at line 502 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a03b563cafd3a70587ff8d9465578736b}\label{_avr_lib_8c_a03b563cafd3a70587ff8d9465578736b}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_PutChar@{Usart\_PutChar}}
+\index{Usart\_PutChar@{Usart\_PutChar}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_PutChar()}{Usart\_PutChar()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Put\+Char (\begin{DoxyParamCaption}\item[{char}]{ch }\end{DoxyParamCaption})}
+
+
+
+Put one charactor to the Uart. 
+
+This might be useful in case we are very time critical with tracing! 
+
+Definition at line 518 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a8914817066cdfdab2483afdd3ecc8ada}\label{_avr_lib_8c_a8914817066cdfdab2483afdd3ecc8ada}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_PutShort@{Usart\_PutShort}}
+\index{Usart\_PutShort@{Usart\_PutShort}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_PutShort()}{Usart\_PutShort()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Put\+Short (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{value }\end{DoxyParamCaption})}
+
+
+
+Definition at line 694 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a13526c993e9f5423f81f0778e813fea6}\label{_avr_lib_8c_a13526c993e9f5423f81f0778e813fea6}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Trace0@{Usart\_Trace0}}
+\index{Usart\_Trace0@{Usart\_Trace0}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Trace0()}{Usart\_Trace0()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Trace0 (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id }\end{DoxyParamCaption})}
+
+
+
+Don\textquotesingle{}t bother about these implementations; you should not use them directly; that\textquotesingle{}s up to the build process! 
+
+
+
+Definition at line 717 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a7920cad57328487833bec6dfc8169ff0}\label{_avr_lib_8c_a7920cad57328487833bec6dfc8169ff0}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Trace1@{Usart\_Trace1}}
+\index{Usart\_Trace1@{Usart\_Trace1}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Trace1()}{Usart\_Trace1()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Trace1 (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id,  }\item[{uint8\+\_\+t}]{ch }\end{DoxyParamCaption})}
+
+
+
+Definition at line 723 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a76fa4637266422b10e127082d5ede5af}\label{_avr_lib_8c_a76fa4637266422b10e127082d5ede5af}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Trace2@{Usart\_Trace2}}
+\index{Usart\_Trace2@{Usart\_Trace2}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Trace2()}{Usart\_Trace2()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Trace2 (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id,  }\item[{uint8\+\_\+t}]{val1,  }\item[{uint8\+\_\+t}]{val2 }\end{DoxyParamCaption})}
+
+
+
+Definition at line 728 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_aff59557715efa0b5789b84418a503202}\label{_avr_lib_8c_aff59557715efa0b5789b84418a503202}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Trace3@{Usart\_Trace3}}
+\index{Usart\_Trace3@{Usart\_Trace3}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Trace3()}{Usart\_Trace3()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Trace3 (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id,  }\item[{uint8\+\_\+t}]{val1,  }\item[{uint8\+\_\+t}]{val2,  }\item[{uint8\+\_\+t}]{val3 }\end{DoxyParamCaption})}
+
+
+
+Definition at line 734 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a82e177e9c019be8b539490050cce6641}\label{_avr_lib_8c_a82e177e9c019be8b539490050cce6641}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_Trace4@{Usart\_Trace4}}
+\index{Usart\_Trace4@{Usart\_Trace4}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_Trace4()}{Usart\_Trace4()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+Trace4 (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id,  }\item[{uint8\+\_\+t}]{val1,  }\item[{uint8\+\_\+t}]{val2,  }\item[{uint8\+\_\+t}]{val3,  }\item[{uint8\+\_\+t}]{val4 }\end{DoxyParamCaption})}
+
+
+
+Definition at line 740 of file Avr\+Lib.\+c.
+
+\mbox{\Hypertarget{_avr_lib_8c_a683398ef655b92d30d7e8605e0262630}\label{_avr_lib_8c_a683398ef655b92d30d7e8605e0262630}} 
+\index{AvrLib.c@{AvrLib.c}!Usart\_TraceN@{Usart\_TraceN}}
+\index{Usart\_TraceN@{Usart\_TraceN}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{Usart\_TraceN()}{Usart\_TraceN()}}
+{\footnotesize\ttfamily void Usart\+\_\+\+TraceN (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{id,  }\item[{const uint8\+\_\+t $\ast$}]{p\+Val,  }\item[{int8\+\_\+t}]{len }\end{DoxyParamCaption})}
+
+
+
+Definition at line 700 of file Avr\+Lib.\+c.
+
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{_avr_lib_8c_a915c5dd805b9fe49be4ca3fcd55b5e31}\label{_avr_lib_8c_a915c5dd805b9fe49be4ca3fcd55b5e31}} 
+\index{AvrLib.c@{AvrLib.c}!TestHandler@{TestHandler}}
+\index{TestHandler@{TestHandler}!AvrLib.c@{AvrLib.c}}
+\doxysubsubsection{\texorpdfstring{TestHandler}{TestHandler}}
+{\footnotesize\ttfamily \mbox{\hyperlink{_avr_lib_8h_a9eeee953b87fe78bf817bec51b00037d}{Fsm}} Test\+Handler = \{ .Next = 0, .Rx\+Mask = 1, .Current\+State = 0 \}}
+
+
+
+Definition at line 36 of file Avr\+Lib.\+c.
+
