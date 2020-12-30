@@ -1,6 +1,7 @@
 # Welcome to AVR
 
-The Avr project contains resources for class projects related to the courses held at GIBZ in 2020/21.
+The Avr project contains resources for class projects related to the courses held at GIBZ in 2020/21. This includes a toolchain to build firmware in C, a library for class projects and a UI to interact with the board. 
+
 
 ## The metro board <img src="https://user-images.githubusercontent.com/46196385/99855226-9d52e680-2b86-11eb-9b21-aa7be37c54b5.jpg" width="100" height="100"/>
 In the courses we use the [Adafruit metro board](https://www.adafruit.com/product/2488?gclid=EAIaIQobChMI383B5Yr27QIVEgOLCh1_Vw1FEAAYAiAAEgJi-PD_BwE). 
