@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['registeravrmessagehandler_587',['RegisterAvrMessageHandler',['../group___functions.html#ga250b4b7a63e26fd06875a2ae7f769603',1,'AvrLib.h']]],
-  ['registercomparematchinterrupt_588',['RegisterCompareMatchInterrupt',['../group___functions.html#gaae6299783f51d753125be1a8c2d830be',1,'AvrLib.h']]],
-  ['registerexternalinterupthandler_589',['RegisterExternalInteruptHandler',['../group___functions.html#ga689c8adc347f1499e90f601a55975c8d',1,'AvrLib.h']]],
-  ['registerfsm_590',['RegisterFsm',['../group___functions.html#gacf0585ec1d8dfc68002eb0e357aec8ea',1,'AvrLib.h']]]
+  ['sendmessage_203',['SendMessage',['../group___functions.html#gadd0902722b85415d9271d54289b2af87',1,'AvrLib.h']]],
+  ['setextinterruptenable_204',['SetExtInterruptEnable',['../group___functions.html#gabab4c4585c5bc06434241babc8460e7b',1,'AvrLib.h']]],
+  ['setstate_205',['SetState',['../group___functions.html#ga0ed7424c2384342c95bcba6fe359dbc8',1,'AvrLib.h']]],
+  ['starttimer_206',['StartTimer',['../group___functions.html#ga4a217d8dc26f12aedbfb56d503e2083b',1,'AvrLib.h']]]
 ];

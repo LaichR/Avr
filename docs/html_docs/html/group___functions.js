@@ -7,7 +7,6 @@ var group___functions =
     [ "InitializeStateEventFramework", "group___functions.html#gab8c6d3420ff0638bfc805b6923c9de59", null ],
     [ "IsrEnter", "group___functions.html#ga1dca1e1280a33d82df0391e3d7406ec1", null ],
     [ "IsrLeave", "group___functions.html#gaff72f6764c8a10001e915803d541a81d", null ],
-    [ "LeaveAtomic", "group___functions.html#ga39c9d65538111537b4ba8ec22a4f5d24", null ],
     [ "MeasureOnce", "group___functions.html#ga81a5f6d0fbdccf837ea80a52da409049", null ],
     [ "RegisterAvrMessageHandler", "group___functions.html#ga250b4b7a63e26fd06875a2ae7f769603", null ],
     [ "RegisterCompareMatchInterrupt", "group___functions.html#gaae6299783f51d753125be1a8c2d830be", null ],
@@ -17,13 +16,8 @@ var group___functions =
     [ "SetExtInterruptEnable", "group___functions.html#gabab4c4585c5bc06434241babc8460e7b", null ],
     [ "SetState", "group___functions.html#ga0ed7424c2384342c95bcba6fe359dbc8", null ],
     [ "StartTimer", "group___functions.html#ga4a217d8dc26f12aedbfb56d503e2083b", null ],
-    [ "UnregisterCompareMatchInterrupt", "group___functions.html#gacc879551df04aa1bcb4eadb27940e316", null ],
     [ "UnregisterExternalInterruptHandler", "group___functions.html#gad294b58ea2c279e31c0dde21101a5c83", null ],
     [ "Usart_Init", "group___functions.html#gabb586ce66a7472c329436a697b08afa7", null ],
     [ "Usart_PutChar", "group___functions.html#ga03b563cafd3a70587ff8d9465578736b", null ],
-    [ "Usart_Trace0", "group___functions.html#ga13526c993e9f5423f81f0778e813fea6", null ],
-    [ "Usart_Trace1", "group___functions.html#ga559f64e8fc8a1b2c123571f7b0701bef", null ],
-    [ "Usart_Trace2", "group___functions.html#ga76fa4637266422b10e127082d5ede5af", null ],
-    [ "Usart_Trace3", "group___functions.html#gaff59557715efa0b5789b84418a503202", null ],
-    [ "Usart_Trace4", "group___functions.html#ga82e177e9c019be8b539490050cce6641", null ]
+    [ "Usart_Trace0", "group___functions.html#ga13526c993e9f5423f81f0778e813fea6", null ]
 ];

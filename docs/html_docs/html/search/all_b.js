@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['next_270',['Next',['../struct_fsm.html#a546597c26e5bae4155eb9936274e77a6',1,'Fsm']]],
-  ['noparitycheck_271',['NoParityCheck',['../_atmega328_p_8h.html#a18588adce99ac28b1a37d54cd3539767a56be49a694d3a82242b88e6ba6b2078f',1,'Atmega328P.h']]],
-  ['normal_272',['Normal',['../_atmega328_p_8h.html#a1c812a5cefd048b58b1e87e2dfbd0c79a5ecbcf0afce98b042f35ec71ba03fa4b',1,'Atmega328P.h']]]
+  ['ocra_77',['OCRA',['../struct_t_c_n_t8___t.html#a69a5ce4b72ed28587757def07c82ba36',1,'TCNT8_T::OCRA()'],['../struct_t_c_n_t16___t.html#a4b78f609461ed1c49e4901ef734b70e8',1,'TCNT16_T::OCRA()']]],
+  ['ocrb_78',['OCRB',['../struct_t_c_n_t8___t.html#a24073a8252bb300367626fa5b216e3fc',1,'TCNT8_T::OCRB()'],['../struct_t_c_n_t16___t.html#a9b385931bfdb71574e1f92d8bea121e7',1,'TCNT16_T::OCRB()']]]
 ];

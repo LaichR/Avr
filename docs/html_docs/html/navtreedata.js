@@ -36,12 +36,12 @@ var NAVTREE =
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ],
       [ "Globals", "globals.html", [
-        [ "All", "globals.html", "globals_dup" ],
+        [ "All", "globals.html", null ],
         [ "Functions", "globals_func.html", null ],
         [ "Typedefs", "globals_type.html", null ],
         [ "Enumerations", "globals_enum.html", null ],
         [ "Enumerator", "globals_eval.html", null ],
-        [ "Macros", "globals_defs.html", "globals_defs" ]
+        [ "Macros", "globals_defs.html", null ]
       ] ]
     ] ]
   ] ]
@@ -51,7 +51,7 @@ var NAVTREEINDEX =
 [
 "_atmega328_p_8h.html",
 "_atmega328_p_8h.html#a9b89de5f15500792661acae61324727b",
-"_register_access_8h_source.html"
+"group___functions.html#gab8c6d3420ff0638bfc805b6923c9de59"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
