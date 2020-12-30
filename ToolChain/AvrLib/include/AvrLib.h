@@ -36,8 +36,8 @@ typedef enum
 
 typedef enum
 {
-    ExtInterruptSource0,
-    ExtInterruptSource1
+    ExtInterruptSource0, ///< Int0
+    ExtInterruptSource1  ///< Int1
 }ExtInteruptSource;
 
 /**
@@ -60,10 +60,10 @@ typedef enum
 */
 typedef enum
 {
-    CompareMatchSource1=0,
-    CompareMatchSource2=1,
-    CompareMatchSource3=2,
-    CompareMatchSource4=3,
+    CompareMatchSource1=0, ///< Tcnt0 OCRA
+    CompareMatchSource2=1, ///< Tcnt0 OCRB
+    CompareMatchSource3=2, ///< Tcnt2 ORCA
+    CompareMatchSource4=3, ///< Tcnt2 ORCB
 }CompareMatchSource;
 
 
@@ -121,21 +121,24 @@ typedef enum
 */
  typedef struct AvrMessage_tag
  {
-	 AvrPacketType MsgType;
-	 uint8_t Length;
-	 uint8_t Payload[12];
+	 AvrPacketType MsgType; ///< Type of the packet
+	 uint8_t Length;        ///< Length of the payload
+	 uint8_t Payload[12];   ///< data of the packet // the used length may be smaller
  }AvrMessage;
 
 
  /**
-* @brief Item um Information zwischen verschiedenen Komponenten des Systems auszutauschen.
+* @brief Der Typ Message modlliert ein asynchrones Ereigniss. Einem solchen Ereignis können Daten mitgegeben werden. 
 *
-*
+* Im StateEvent-Frameword der AvrLib werden Messages verwendet, um Ereinisse zu signalisiern und Informationen zwischen Zustandsmaschinen auszutauschen. 
+* Mit der Funktion \ref SendMessage werden Meldungen erzeugt und verschickt. Ereignisse werden in einer Queue zwischengespeichert, bevor sie beim Empfänger bearbeitet werden.
+* Meldungen mit grosser Priorität werden vor Meldungen mit kleiner Priorität bearbeit. Innerhalb derselben Priorität gilt FIFO Ordnung.
+* 
 */
  typedef struct Message_tag
  {
      uint8_t Priority;				///< Definiert die Priorität; je kleiner die Zahl, desto grösser die Priorität;
-                                    ///  Es sind vier Prioritäten defniert
+                                    ///  Es sind 8 Prioritäten defniert.
      uint8_t Id;					///< Id der Meldung
      union
      {
@@ -171,12 +174,18 @@ typedef enum
  /**
 * @brief Repräsentiert eine Zustandsmaschine
 *
-* Eine oder mehrere Zustandsmaschinen können im Framework registriert werden. Beim Auftreten einer Meldung werden alle
-* Zustandsmaschinen, welche auf diese *EventSource* registriert sind, notifiziert
+* Die Zustandsmaschinen werden verwendet, um die verschiedenen Zustände eines bestimmten Objektes zu implementieren.
+* Dabei ist jeder Zustand eine Funktion vom Typ \ref StateHandler. Eine Funktion implementiert also einen Zustand der Maschine. 
+* Bei einem Zustandsübergang wird dem Feld CurrentState eine andere Zustandsfunktion zugewiesen.
+* Eine oder mehrere Zustandsmaschinen können im Framework registriert werden. Beim Auftreten einer \ref Message, werden alle registrierten Zusandsmaschinen benachrichtigt. 
+* Falls das Feld RxMask die Priorität der Meldung enthält,
+* wird die \ref Message an die entsprechende Zustandsmaschine weitergeleitet.
+* 
+* 
 */
  typedef struct Fsm_tag
  {
-     struct Fsm_tag* Next;			///< nächste registrierte Zustanndsmaschine; internal use only!
+     struct Fsm_tag* Next;			///< nächste registrierte Zustandsmaschine; dieses Feld wird vom Framework verwendet!
      uint8_t RxMask;			    ///< Maske, welche angibt, welche *Prioritäyten* bearbeitet werden sollen
      StateHandler CurrentState;		///< Funktion, welche den aktuellen Zustand representiert
  }Fsm;
@@ -194,7 +203,7 @@ typedef enum
  *
  * The framework starts the dispatch loop and allows to receive messages
  * from the PC
- * The PB5 is set as output in order to allow LED indications
+ * The PB5 is set as output in order to allow LED indications. The call to \ref InitializeStateEventFramework will never return. Hence all code that follows is not reachable!
  */
  void InitializeStateEventFramework(void);
 
