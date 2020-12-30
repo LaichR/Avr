@@ -7,6 +7,13 @@ In the courses we use the Adafruit metro board. The metro board is compatible wi
 In [this link](https://cdn-shop.adafruit.com/product-files/2488/Adafruit+Metrol_v2_0.pdf) you can find a simple overview of the metro board board. The diagram shows the exposed pins and theire functions.
 The metro board is equiped with a atmega328p microcontroller. The datasheet of this microcontroller you can find [here](http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf)
 
-##  The library AvrLib and the required includes
-The library is documented using Doxygen. The current html version is available [here](docs/html_docs/html/index.html)
+##  AvrLib and its headers
+
+The library AvrLib provides the basic functionalities for the class projects. This includes:
+- The typdefs for the relevant (used) HW-blocks
+- Some macros to easily set bitfields within registers
+- A tracing framework to support little overhead tracing
+- A simple state event framework
+
+The librar is documented using Doxygen. The current html version is available [here](docs/html_docs/html/index.html)
 
