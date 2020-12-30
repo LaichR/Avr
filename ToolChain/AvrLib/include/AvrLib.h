@@ -180,7 +180,7 @@ typedef enum
 * Die Zustandsmaschinen werden verwendet, um die verschiedenen Zustände eines bestimmten Objektes zu implementieren.
 * Dabei ist jeder Zustand eine Funktion vom Typ \ref StateHandler. Eine Funktion implementiert also einen Zustand der Maschine. 
 * Bei einem Zustandsübergang wird dem Feld CurrentState eine andere Zustandsfunktion zugewiesen.
-* Eine oder mehrere Zustandsmaschinen können im Framework registriert werden. Beim Auftreten einer \ref Message, werden alle registrierten Zusandsmaschinen benachrichtigt. 
+* Eine oder mehrere Zustandsmaschinen können im Framework registriert werden. Beim Auftreten einer \ref Message, werden alle registrierten Zustandsmaschinen benachrichtigt. 
 * Falls das Feld RxMask die Priorität der Meldung enthält,
 * wird die \ref Message an die entsprechende Zustandsmaschine weitergeleitet.
 * 

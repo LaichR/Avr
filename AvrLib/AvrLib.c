@@ -17,7 +17,7 @@
 #include <avr/io.h>
 #include <Atmega328P.h>
 #include <avr/interrupt.h>
-#include <AvrLib.h>
+#include "AvrLib.h"
 #include <RegisterAccess.h>
 
 #define F_CPU 16000000
