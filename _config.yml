@@ -1,1 +1,2 @@
 theme: jekyll-theme-modernist
+include: _atmega328_p_8h.html, _atmega328_p_8h_source.html, _avr_lib_8c_source.html, _avr_lib_8h.html
