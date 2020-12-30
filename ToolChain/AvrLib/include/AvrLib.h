@@ -1,9 +1,12 @@
 /***
- * AvrLib.h
- *
- * Supporting functions for the course ICT M121 and M242
- *
+ * @file: AvrLib.h
+ * 
+ * AvrLib privides the definitions to use the AvrLib Library. The AvrLib provides upporting functions for the course ICT M121 and M242 
+ * 
+ * @Author: Rolf Laich
+ * 
  */
+
 
 
 #ifndef AVRLIB_H_
@@ -127,8 +130,8 @@ typedef enum
  }AvrMessage;
 
 
- /**
-* @brief Der Typ Message modlliert ein asynchrones Ereigniss. Einem solchen Ereignis können Daten mitgegeben werden. 
+/**
+* @brief Der Typ Message modlliert ein asynchrones Ereignis. Einem solchen Ereignis können Daten mitgegeben werden. 
 *
 * Im StateEvent-Frameword der AvrLib werden Messages verwendet, um Ereinisse zu signalisiern und Informationen zwischen Zustandsmaschinen auszutauschen. 
 * Mit der Funktion \ref SendMessage werden Meldungen erzeugt und verschickt. Ereignisse werden in einer Queue zwischengespeichert, bevor sie beim Empfänger bearbeitet werden.
@@ -196,6 +199,11 @@ typedef enum
 /**************************************************************************************/
 /*                   Function Prototypes                                              */
 /**************************************************************************************/
+
+/** \defgroup Functions Available Function Prototypes
+* @{
+*/
+
 
 
  /**
@@ -380,5 +388,6 @@ void IsrEnter(void);
 */
 void IsrLeave(void);
 
+/** @} */
 
 #endif /* AVRLIB_H_ */
