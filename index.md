@@ -17,3 +17,6 @@ The library AvrLib provides the basic functionalities for the class projects. Th
 
 The librar is documented using Doxygen. The current html version is available [here](docs/html_docs/html/index.html)
 
+## Class Projects
+
+- [Lift-Door](docs/ProjDoor)
