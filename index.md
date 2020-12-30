@@ -8,5 +8,5 @@ In [this link](https://cdn-shop.adafruit.com/product-files/2488/Adafruit+Metrol_
 The metro board is equiped with a atmega328p microcontroller. The datasheet of this microcontroller you can find [here](http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf)
 
 ##  The library AvrLib and the required includes
-The library is documented using Doxygen. The current html version is available [here](docs/html_docs/index.html)
+The library is documented using Doxygen. The current html version is available [here](docs/html_docs/html/index.html)
 
