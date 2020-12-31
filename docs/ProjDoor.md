@@ -1,6 +1,8 @@
-# Lift Door
+# Lift Door 
+<p align="center"><img src="https://user-images.githubusercontent.com/46196385/103415235-89d16d00-4b81-11eb-9df8-9cb3bd40e91a.jpg" width= "250"/></p>
 
-In this class project we control a simple model of a lift door. Part of this model is a DC motor and the motor driver, two light switches and the connected PC. The model is controlled through the metro board. It receives the user input from the PC (open door/close door) and controls the motor driver using the PWM generator. The light switche signals indicate when the motor has to stop again.<br>
+In this class project we control a simple model of a lift door. 
+Part of this model is a DC motor and the motor driver, two light switches and the connected PC. The model is controlled through the metro board. It receives the user input from the PC (open door/close door) and controls the motor driver using the PWM generator. The light switche signals indicate when the motor has to stop again.<br>
 With a block diagram the system may be represented as follows <img src="https://user-images.githubusercontent.com/46196385/103366688-90011400-4ac3-11eb-8e9e-65c0397db300.png" />
 The descriptions on the connections between the different blocks indicate the used IO Ports of the microcontroller. Thus we have to deal with the following connections:
 - **Microcontroller <-> PC**: The data is exchanged using serial data transmission. The PC sends the commands *Open Door* and *Close Door"*. The microcontroller may send trace information for debugging.
