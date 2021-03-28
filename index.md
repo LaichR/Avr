@@ -22,3 +22,4 @@ The librar is documented using Doxygen. The current html version is available [h
 ## Class Projects
 
 - [Lift-Door](docs/ProjDoor)
+- [Transferring data using a LED](docs/ProjVlc)
