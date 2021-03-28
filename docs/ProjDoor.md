@@ -1,5 +1,5 @@
 # Lift Door 
-<p align="center"><img src="https://user-images.githubusercontent.com/46196385/103415235-89d16d00-4b81-11eb-9df8-9cb3bd40e91a.jpg" width= "250"/></p>
+<p align="center"><video src="https://user-images.githubusercontent.com/46196385/103536823-7f6de680-4e93-11eb-8f41-e33268a18985.mp4" width="350" autoplay controls/></p>
 
 In this class project we control a simple model of a lift door. 
 Part of this model is a DC motor and the motor driver, two light switches and the connected PC. The model is controlled through the metro board. It receives the user input from the PC (open door/close door) and controls the motor driver using the PWM generator. The light switch signals indicate when the motor has to stop again.<br>
