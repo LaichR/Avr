@@ -25,6 +25,7 @@
 
 
 
+
 /**************************************************************************/
 /*                global variables                                        */
 /**************************************************************************/
@@ -36,8 +37,9 @@ static IsrHandler _compareMatchHandler[4] = { 0,0,0,0 };
 Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
 
 
-static uint8_t _enterAtomicNesting = 0;
-static Bool _withinIsr = False;
+//static uint8_t _enterAtomicNesting = 0;
+
+
 
 #define USART_RX_BUFFER_SIZE 32
 #define USART_TX_BUFFER_SIZE 32
@@ -53,8 +55,8 @@ static volatile uint8_t USART_rxBufferOut = 0;
 static volatile uint8_t USART_txBufferIn = 0;
 static volatile uint8_t USART_txBufferOut = 0;
 
-static AvrMessage _avrMessagePool[8];
-static uint8_t    _avrMsgIndex[8] = { 0, 1, 2, 3, 4, 5, 6, 7};
+static AvrMessage _avrMessagePool[4];
+static uint8_t    _avrMsgIndex[4] = { 0, 1, 2, 3};
 static uint8_t    _avrPoolIn = countof(_avrMessagePool) - 1;
 static uint8_t    _avrPoolOut = 0;
 
@@ -194,7 +196,7 @@ static const uint8_t source2Div[] = { 1,2,4,6,7 };
 void RegisterCompareMatchInterrupt(CompareMatchSource source,
 	TimerFrequency frequency, uint8_t match, IsrHandler handler)
 {
-
+	EnterAtomic();
 	volatile TCNT8_T *timer = &Tcnt0;
 	volatile uint8_t* msk = &Timsk0;
 	const uint8_t* pDiv = source1Div;
@@ -212,17 +214,23 @@ void RegisterCompareMatchInterrupt(CompareMatchSource source,
 	pmatch[isrMask] = match;
 	_compareMatchHandler[source] = handler;
 	*msk |= 1 << ((isrMask) + 1);
+	LeaveAtomic();
 }
 
 void UnregisterCompareMatchInterrupt(CompareMatchSource source)
 {
+	EnterAtomic();
+	volatile TCNT8_T *timer = &Tcnt0;
 	volatile uint8_t* msk = &Timsk0;
-	if (source > CompareMatchSource1)
+	if (source > CompareMatchSource2)
 	{
+		timer = &Tcnt2;
 		msk = &Timsk2;
 	}
+	SetRegister(timer->TCCRB, (TCCRB_CS, 0));
 	*msk &= ~( 1 << ((source & 1) + 1));
 	_compareMatchHandler[source] = 0;
+	LeaveAtomic();
 }
 
 /**
@@ -251,34 +259,39 @@ void InitializeStateEventFramework(void)
 	}
 }
 
-void IsrEnter()
+inline void IsrEnter()
 {
-	_withinIsr = True;
+	//asm( "sbi 0x1e, 7":);
+	_withinIsr |= 0x80;
 }
 
-void IsrLeave()
+inline void IsrLeave()
 {
-	_withinIsr = False;
+	_withinIsr &= ~0x80;
+	//asm("cbi 0x1e, 7":);
 }
 
 void EnterAtomic(void)
 {
 	// in case we are in interrupt context, we must never reenable interrupts
 	
-	if (_withinIsr) return;
-	
+	if (_withinIsr&0x80) return;
+	uint8_t withinIsr = _withinIsr;
 	cli(); // this just forces the bit to be cleared; should be possible to call this many times without side effect
-	_enterAtomicNesting++;
-}
+	withinIsr+=1;
+	_withinIsr = withinIsr;
+} 
 
 void LeaveAtomic(void)
 {
-	if (_withinIsr) return;
+	if (_withinIsr&0x80) return;
 
-	if (_enterAtomicNesting > 0)
+	uint8_t within_isr = _withinIsr;
+	//if (within_isr > 0)
 	{
-		_enterAtomicNesting--;
-		if (_enterAtomicNesting == 0)
+		within_isr--;
+		_withinIsr = within_isr;
+		if (within_isr == 0)
 		{
 			sei();
 		}
@@ -288,7 +301,8 @@ void LeaveAtomic(void)
 void HandleMessage(char receivedData)
 {
 	
-	static uint8_t msgBuffer[14]; // longest
+	
+	static uint8_t msgBuffer[16]; // longest
 	static uint8_t bufferIndex = 0;
 	static uint8_t msgType = 0;
 	static uint8_t msgLen = 0;
@@ -378,6 +392,7 @@ void RegisterFsm(Fsm* fsm)
 
 Bool DispatchEvent(void)
 {
+	
 	Message msg = { .Id = 0, .__next = 0 };
 	if (GetMessage(&msg))
 	{
@@ -398,16 +413,16 @@ Bool DispatchEvent(void)
 			uint8_t prioFlag = 1 << msg.Priority;
 			while (p != &_anchor)
 			{
+				
 				if ((p->RxMask & prioFlag) != 0)
 				{
-					p->CurrentState( &msg );
+					p->CurrentState( &msg );	
 				}
 				p = p->Next;
-			}
+			}	
 		}
 		return True;
 	}
-	//Usart_PutChar(0xB2);
 	return False;
 }
 
@@ -418,7 +433,7 @@ Bool DispatchEvent(void)
 void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 {
 	//uint8_t nextMessageIn = (_qIn + 1) % (countof(_prioQueue));
-	PortB.PORT |= PIN_5_mask;
+	SET_DBG_PIN(5);
 	EnterAtomic();
 	uint8_t nextIn = (_qIn + 1) % countof(_messagePool);
 	if (nextIn == _qOut)
@@ -440,7 +455,7 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 		Usart_PutChar(0xAF);
 		while (1)
 		{
-			PortB.PORT ^= PIN_5_mask;
+			PortB.PORT ^= 0xFF;
 			_delay_ms(1000);
 		}
 		LeaveAtomic();
@@ -463,7 +478,7 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh)
 	msg->__next = q->__next;
 	q->__next = msg;
 	LeaveAtomic();
-	PortB.PORT ^= PIN_5_mask;
+	CLR_DBG_PIN(5);
 }
 
 
@@ -533,12 +548,10 @@ void Usart_PutChar(char ch)
  
 ISR_UsartDataRegEmpty()
 {	
-	IsrEnter();
-	if (USART_txBufferOut != USART_txBufferIn)
-	{
-		Usart.UDR = USART_txBuffer[USART_txBufferOut++];
-		USART_txBufferOut %= countof(USART_txBuffer);
-	}
+	IsrEnter();	
+	Usart.UDR = USART_txBuffer[USART_txBufferOut++];
+	USART_txBufferOut %= countof(USART_txBuffer);
+
 	if (USART_txBufferOut == USART_txBufferIn)
 	{
 		UpdateRegister(Usart.UCSRB, (UCSRB_UDRIEN, False));

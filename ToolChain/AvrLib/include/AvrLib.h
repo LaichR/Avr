@@ -19,6 +19,18 @@
 #define TRACE(traceStr,...)
 #define countof(array)      (sizeof(array)/sizeof(array[0]))
 
+//#define DEBUG_PORT B
+#ifdef DEBUG_PORT
+#define cat(x,y)    x ## y
+#define xcat( x, y) cat(x,y)
+#define SET_DBG_PIN(x) xcat(Port,DEBUG_PORT).PORT |= (1<<x)
+#define CLR_DBG_PIN(x) xcat(Port,DEBUG_PORT).PORT &= ~(1<<x)
+#else
+#define SET_DBG_PIN(x) 
+#define CLR_DBG_PIN(x)
+#endif
+
+#define _withinIsr *((volatile uint8_t*)0x3e)
 
 /**************************************************************************************/
 /*                   type definitions                                                 */
@@ -126,7 +138,7 @@ typedef enum
  {
 	 AvrPacketType MsgType; ///< Type of the packet
 	 uint8_t Length;        ///< Length of the payload
-	 uint8_t Payload[12];   ///< data of the packet // the used length may be smaller
+	 uint8_t Payload[14];   ///< data of the packet // the used length may be smaller
  }AvrMessage;
 
 
@@ -304,7 +316,7 @@ typedef enum
  * Tcnt1 holds a 16bit counter. In case the counter overflows, a int32 counter variable is incremented.
  * The counter variable is supposed to refelct the us since the last start of the counter!
  * (Timer-Frequency is set to 2Mhz)
- * The timer variable will hence overflow every 2^32 us 4295s  > 1h
+ * The timer variable will hence overflow every 2^23 us = 8 388 608us  > 8s
  */
  void StartTimer(void);
 
