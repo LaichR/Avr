@@ -73,6 +73,11 @@ def GetTokenStr(token):
 def RewriteTrace( startToken, tokenizer, f ):
     global __traceInfo
 
+    def TypeName(nrOfBytes):
+        typeName = ['ZeroByteTrace_T', "OneByteTrace_T",
+            "TwoByteTrace_T", "ThreeByteTrace_T", "FourByteTrace_T" ]
+        return typeName[nrOfBytes]
+
     def EvalArgs( traceStr ):
         args = re.finditer('%(?P<size>\d\d?)', traceStr)
         arguments = list(map(lambda x: int(x.group('size')), args ))
@@ -80,13 +85,15 @@ def RewriteTrace( startToken, tokenizer, f ):
         sum = int(functools.reduce(lambda x, y: x+ y, arguments, 0 ) / 8)
         return sum, arguments
 
-    def WriteTraceArg( x, y, f):
+    def WriteTraceArg( x, y, z, f):
         argCast = {8:'uint8_t', 16: 'uint16_t', 32: 'uint32_t'}
         cast = argCast[x]
         while x > 8:
-            f.write( "(uint8_t)(({0})({1})>>{2}),".format(cast, y.strip(), x-8))
+            f.write( ",.b{3} = (uint8_t)(({0})({1})>>{2})".format(cast, y.strip(), x-8, z))
             x-=8
-        f.write("(uint8_t)(({0}){1})".format(cast, y.strip()))
+            z += 1
+        f.write(",.b{2} = (uint8_t)(({0}){1})".format(cast, y.strip(), z))
+        return z
 
     global __traceInfo
 
@@ -125,18 +132,20 @@ def RewriteTrace( startToken, tokenizer, f ):
     #p#rint( traceArgTokens )
     trace = TraceInfo( traceId, traceString, t.FileName, t.LineNumber, len(arguments) )
     __traceInfo.append(trace)
-    f.write( functools.reduce(  lambda x, y: x + y, startToken.LeadingWhiteSpace, '' ))
-    f.write( 'Usart_Trace{}('.format(str(nrOfBytes)) )
-    f.write( str(traceId) )
-
+    
+    f.write('\n\t{{ {0} t = {{'.format(TypeName(nrOfBytes)))
+    f.write('.id = {0}'.format( traceId ))
     if len(arguments) > 0:
-        f.write( ',' )
+        z = 0
         assert( len(traceArgTokens) == len(arguments))
         for i in range(len(traceArgTokens)-1):
-            WriteTraceArg(arguments[i], traceArgTokens[i], f )
-            f.write( ', ')
-        WriteTraceArg(arguments[-1], traceArgTokens[-1], f )
-    f.write(')')
+            
+            z = WriteTraceArg(arguments[i], traceArgTokens[i], z, f )
+            
+        WriteTraceArg(arguments[-1], traceArgTokens[-1], z, f )
+    f.write('};')
+    f.write( 'Usart_Trace{0}(t);}}'.format(str(nrOfBytes)) )
+    
 
 
 def Preprocess( input, outDir ):
@@ -155,7 +164,9 @@ def Rewrite( input, outDir):
     global __ppContext, __traceInfo
     scanner = ClangScanner(__ppContext, input)
     scanner.Reset()
-    tokenizer = scanner.GetTokenizer();
+    print( "scanner", scanner )
+    tokenizer = scanner.GetTokenizer()
+    print ( "tokenizer", tokenizer )
     fileName = pathlib.Path(input).parts[-1]
 
     outputFile = pathlib.Path(outDir) / fileName

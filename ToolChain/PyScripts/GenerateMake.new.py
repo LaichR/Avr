@@ -1,5 +1,5 @@
 import os, pathlib, sys, string, json
-import Preprocess
+import PpGrpcIo as Preprocess
 
 targetConfigs = {}
 configPath = pathlib.Path(os.environ['ToolsRoot']) / "Config" / "TargetConfig.json"
@@ -139,18 +139,23 @@ def GenerateMake( inputDir, outputDir, toolsRoot, linkerStage = 'elf'):
         return t.safe_substitute(m)
 
     global serialPort
-
+    
+    Preprocess.TryCloseOpenPorts()
     
     p = pathlib.Path(inputDir)
     print( inputDir )
     print("********************************")
+
+    pathlib.Path(outputDir).mkdir(exist_ok=True)
     sources = [x  for x in p.iterdir() if x.suffix == ('.c')]
     print ( sources )
-    pathlib.Path(outputDir).mkdir(exist_ok=True)
-    Preprocess.InitPreprocessor([], [])
-    for s in sources:
-        Preprocess.Rewrite(str(s), outputDir)
-    Preprocess.DumpTraceRecords(outputDir)
+    outDir = pathlib.Path(outputDir)
+    with Preprocess.InitPreprocessor(toolsRoot):
+        for input in sources:
+            output = (outDir / pathlib.Path(input).name )
+            Preprocess.PreprocessFile(input, output)
+        Preprocess.DumpTraceRecords(outputDir)
+
     asmSources =  [x  for x in p.iterdir() if x.suffix == ('.s')]
     asmSourceList = list(map( str, asmSources))
     print( asmSources )

@@ -42,7 +42,7 @@ Fsm TestHandler = { .Next = 0, .RxMask = 1, .CurrentState = 0 };
 
 
 #define USART_RX_BUFFER_SIZE 32
-#define USART_TX_BUFFER_SIZE 32
+#define USART_TX_BUFFER_SIZE 64
 
 static uint8_t USART_rxBuffer[USART_RX_BUFFER_SIZE];
 static uint8_t USART_txBuffer[USART_TX_BUFFER_SIZE];
@@ -111,13 +111,45 @@ static AvrMessageHandler HandleAvrMessage = DefaultMessageHandler;
 /**************************************************************************/
 
 void HandleMessage(char receivedData);
-void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen);
+void ProcessMessage(uint8_t msgType, const uint8_t* msg, uint8_t msgLen);
 void Usart_PutShort(uint16_t value);
+void Usart_TriggerTx(void);
+uint8_t Usart_AvailableTxBuffer(void);
+uint8_t Usart_UnsafeEnqueueByte(uint8_t index, uint8_t b);
+uint8_t Usart_AwaitAwailableSpaceAndLockBuffer(uint8_t needed);
+
 
 /**************************************************************************/
 /*                function implementations                                */
 /**************************************************************************/
 
+
+void Usart_AckBytes(uint8_t nrOfBytes, AvrPacketType packetType)
+{
+	// this allows the flow control with the PC!
+	uint8_t index = Usart_AwaitAwailableSpaceAndLockBuffer(3);
+	index = Usart_UnsafeEnqueueByte(index, PacketType_AnyDataAck);
+	index = Usart_UnsafeEnqueueByte(index, nrOfBytes);
+	index = Usart_UnsafeEnqueueByte(index, packetType);
+	USART_txBufferIn = index;
+	Usart_TriggerTx();
+	LeaveAtomic();
+}
+
+void Usart_SendAnyData(const uint8_t *bytes, uint8_t count)
+{
+	uint8_t index = Usart_AwaitAwailableSpaceAndLockBuffer(count + 2);
+	uint8_t i = 0;
+	index = Usart_UnsafeEnqueueByte(index, PacketType_AnyData);
+	index = Usart_UnsafeEnqueueByte(index, count);
+	while( i < count) // we may send messages of length 0
+	{
+		index = Usart_UnsafeEnqueueByte(index, bytes[i++]);
+	}
+	USART_txBufferIn = index;
+	Usart_TriggerTx();
+	LeaveAtomic();
+}
 
 uint16_t MeasureOnce(AnalogChannelSelection channel, ReferenceSelection Vref, AdcPrescaler prescaler)
 {
@@ -146,6 +178,20 @@ void RegisterExternalInteruptHandler(ExtInteruptSource source,
 	_extIntHandler[source] = handler;
 	Eimsk |= (1 << source);
 	LeaveAtomic();
+}
+
+uint8_t Usart_AwaitAwailableSpaceAndLockBuffer(uint8_t needed)
+{
+	EnterAtomic();
+	uint8_t index = USART_txBufferIn;
+	while( needed > Usart_AvailableTxBuffer())
+	{
+		LeaveAtomic();
+		_delay_ms(5);
+		EnterAtomic();
+		index = USART_txBufferIn;
+	}
+	return index;
 }
 
 /**
@@ -208,6 +254,7 @@ void RegisterCompareMatchInterrupt(CompareMatchSource source,
 		msk = &Timsk2;
 		isrMask = (source- CompareMatchSource3) & 3;
 	}
+	timer->TCNT = 0;
 	SetRegister(timer->TCCRA, (TCCRA_WGM, ClrTmrOnCmpMatch));
 	SetRegister(timer->TCCRB, (TCCRB_CS, pDiv[frequency]));
 	volatile uint8_t* pmatch = &timer->OCRA;
@@ -314,8 +361,12 @@ void HandleMessage(char receivedData)
 	else if (msgLen == 0)
 	{
 		msgLen = receivedData - 2;
-
 		bufferIndex = 0;
+		if( msgLen == 0)
+		{
+			ProcessMessage(msgType, msgBuffer, msgLen);
+			msgType = 0;
+		}
 	}
 	else if (bufferIndex < msgLen)
 	{
@@ -329,7 +380,7 @@ void HandleMessage(char receivedData)
 	}
 }
 
-void ProcessMessage(uint8_t msgType, uint8_t* msg, uint8_t msgLen)
+void ProcessMessage(uint8_t msgType, const uint8_t* msg, uint8_t msgLen)
 {
 	//Usart_PutChar(0xD1);
 	if (_avrPoolOut != _avrPoolIn)
@@ -402,8 +453,10 @@ Bool DispatchEvent(void)
 			//Usart_PutChar(msgIndex);
 			AvrMessage* avrMsg = &_avrMessagePool[msgIndex];
 			//Usart_PutChar(avrMsg->MsgType ^ 0xFF);
-
-			HandleAvrMessage(avrMsg);
+			if( HandleAvrMessage(avrMsg) )
+			{
+				Usart_AckBytes((avrMsg->Length + 2), avrMsg->MsgType);
+			}
 			_avrMsgIndex[_avrPoolIn++] = msgIndex;
 			_avrPoolIn %= countof(_avrMsgIndex);
 		}
@@ -559,6 +612,7 @@ ISR_UsartDataRegEmpty()
 	IsrLeave();
 }
 
+
 void AllowUartRx(void)
 {
 	Usart.UCSRB |= UCSRB_RXCIEN_mask;
@@ -704,56 +758,103 @@ void Usart_PutChar(char ch)
 
 
 
-void Usart_PutShort(uint16_t val)
+uint8_t Usart_AvailableTxBuffer(void)
 {
-	Usart_PutChar(val >> 8);
-	Usart_PutChar(val & 0xFF);
+	int8_t used = USART_txBufferIn - USART_txBufferOut;
+	if( used < 0) used += countof(USART_txBuffer);
+	return countof(USART_txBuffer) - used - 1;
 }
 
-void Usart_TraceN(uint16_t id, const uint8_t* pVal, int8_t len)
+
+uint8_t Usart_UnsafeEnqueueByte(uint8_t index, uint8_t b)
+{
+	USART_txBuffer[index++] = b;
+	index = index % countof(USART_txBuffer); 
+	return index;
+}
+
+inline void Usart_TriggerTx(void)
+{
+	Usart.UCSRB |= UCSRB_UDRIEN_mask;
+}
+
+uint8_t Usart_TraceHeader(uint8_t index, uint16_t id, uint8_t nrOfBytes)
+{
+	index = Usart_UnsafeEnqueueByte(index, PacketType_TraceMessage);
+	index = Usart_UnsafeEnqueueByte(index, PacketType_TraceMassagePadLen | nrOfBytes);
+	index = Usart_UnsafeEnqueueByte(index, id>>8);
+	index = Usart_UnsafeEnqueueByte(index, id&0xFF);
+	return index;
+}
+
+void Usart_Trace0(ZeroByteTrace_T t)
 {
 	EnterAtomic();
-	// avoid partial messages!
-	if ((USART_TX_BUFFER_SIZE - 1 - FilledTxEntries()) >= (len + 4))
+	if ( Usart_AvailableTxBuffer() >= 4)
 	{
-		Usart_PutChar(PacketType_TraceMessage);
-			Usart_PutChar(PacketType_TraceMassagePadLen | len);
-			Usart_PutShort(id);
-			while (len-- > 0)
-			{
-				Usart_PutChar(*pVal++);
-			}
+		uint8_t index = Usart_TraceHeader(USART_txBufferIn, t.id, 0);
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
 	}
 	LeaveAtomic();
 }
 
-void Usart_Trace0(uint16_t id)
+void Usart_Trace1(OneByteTrace_T t)
 {
-	Usart_TraceN(id, 0, 0);
-
+	EnterAtomic();
+	if ( Usart_AvailableTxBuffer() >= 5)
+	{
+		uint8_t index = Usart_TraceHeader(USART_txBufferIn, t.id, 1);
+		index = Usart_UnsafeEnqueueByte(index, t.b0);
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
+	}
+	LeaveAtomic();
 }
 
-void Usart_Trace1(uint16_t id, uint8_t ch)
+void Usart_Trace2(TwoByteTrace_T t)
 {
-	Usart_TraceN(id, &ch, 1);
+	EnterAtomic();
+	if ( Usart_AvailableTxBuffer() >= 6)
+	{
+		uint8_t index = Usart_TraceHeader(USART_txBufferIn, t.id, 2);
+		index = Usart_UnsafeEnqueueByte(index, t.b0);
+		index = Usart_UnsafeEnqueueByte(index, t.b1);
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
+	}
+	LeaveAtomic();
 }
 
-void Usart_Trace2(uint16_t id, uint8_t val1, uint8_t val2)
+void Usart_Trace3(ThreeByteTrace_T t)
 {
-	uint8_t buffer[2] = {val1, val2};
-	Usart_TraceN(id, buffer, 2);
+	EnterAtomic();
+	if ( Usart_AvailableTxBuffer() >= 7)
+	{
+		uint8_t index = Usart_TraceHeader(USART_txBufferIn, t.id, 3);
+		index = Usart_UnsafeEnqueueByte(index, t.b0);
+		index = Usart_UnsafeEnqueueByte(index, t.b1);
+		index = Usart_UnsafeEnqueueByte(index, t.b2);
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
+	}
+	LeaveAtomic();
 }
 
-void Usart_Trace3(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3)
+void Usart_Trace4(FourByteTrace_T t)
 {
-	uint8_t buffer[3] = {val1, val2, val3};
-	Usart_TraceN(id, buffer, 3);
-}
-
-void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t val4)
-{
-	uint8_t buffer[4] = {val1, val2, val3, val4};
-	Usart_TraceN(id, buffer, 4);
+	EnterAtomic();
+	if ( Usart_AvailableTxBuffer() >= 8)
+	{
+		uint8_t index = Usart_TraceHeader(USART_txBufferIn, t.id, 3);
+		index = Usart_UnsafeEnqueueByte(index, t.b0);
+		index = Usart_UnsafeEnqueueByte(index, t.b1);
+		index = Usart_UnsafeEnqueueByte(index, t.b2);
+		index = Usart_UnsafeEnqueueByte(index, t.b3);
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
+	}
+	LeaveAtomic();
 }
 
 AvrMessageHandler RegisterAvrMessageHandler(AvrMessageHandler handler)
@@ -772,38 +873,44 @@ Bool DefaultMessageHandler(const AvrMessage* msg)
 	//PortB.PORT |= PIN_5_mask;
 	if (msg->MsgType == PacketType_ReadRegister)
 	{
-		
 		CmdReadReg* pReadReg = (CmdReadReg*)msg->Payload;
 		uint16_t header = (PacketType_ReadRegister<<8) | (pReadReg->len);
-		EnterAtomic();
+		uint8_t index = Usart_AwaitAwailableSpaceAndLockBuffer(4);
 		if (pReadReg->len == 1)
 		{
 			uint8_t* regAddr = (uint8_t*)pReadReg->adress;
 			uint8_t byte = *regAddr;
-			Usart_PutShort(header);
-			Usart_PutChar(byte);
+			index = Usart_UnsafeEnqueueByte(index, header>> 8);
+			index = Usart_UnsafeEnqueueByte(index, (uint8_t)header );
+			index = Usart_UnsafeEnqueueByte(index, (uint8_t)byte );
 		}
 		else if (pReadReg->len == 2)
 		{
 			uint16_t* regAddr = (uint16_t*)pReadReg->adress;
 			uint16_t word = *regAddr;
-			Usart_PutShort(header);
-			Usart_PutShort(word);
+			index = Usart_UnsafeEnqueueByte(index, header>> 8);
+			index = Usart_UnsafeEnqueueByte(index, (uint8_t)header );
+			index = Usart_UnsafeEnqueueByte(index, word >> 8 );
+			index = Usart_UnsafeEnqueueByte(index, (uint8_t)word );
 		}
 		else
 		{
 			header &= 0xFF;
-			Usart_PutShort(header);
+			index = Usart_UnsafeEnqueueByte(index, header>> 8);
+			index = Usart_UnsafeEnqueueByte(index, (uint8_t)header );
 		}
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
 		LeaveAtomic();
 		//PortB.PORT &= ~PIN_5_mask;
 		return True;
 	}
 	if (msg->MsgType == PacketType_WriteRegister)
 	{
+		
 		CmdWriteReg* pWriteReg = (CmdWriteReg* )msg->Payload;
-		uint16_t status = (PacketType_WriteRegister<<8)|1;
-		EnterAtomic();
+		uint16_t header = (PacketType_WriteRegister<<8)|1;
+		uint8_t index = Usart_AwaitAwailableSpaceAndLockBuffer(2);
 		if (pWriteReg->len == 1)
 		{
 			uint8_t* regAddr = (uint8_t*)pWriteReg->adress;
@@ -816,21 +923,19 @@ Bool DefaultMessageHandler(const AvrMessage* msg)
 		}
 		else
 		{
-			status &= 0xFF00;
-		}
-		
-		Usart_PutShort(status);
+			header &= 0xFF00;
+		}	
+		index = Usart_UnsafeEnqueueByte(index, header>> 8);
+		index = Usart_UnsafeEnqueueByte(index, (uint8_t)header );
+		USART_txBufferIn = index;
+		Usart_TriggerTx();
 		LeaveAtomic();
-	
 		return True;
 	}
 	return False;
 }
 
-
-uint8_t ComputeCrc(const uint8_t* data, uint8_t len, uint8_t initialCrc)
-{
-	const static uint8_t crc_table[256] =
+const static uint8_t crc_table[256] =
 	{	
 		0, 141, 151, 26, 163, 46, 52, 185, 203, 70, 92, 209, 104, 229, 255, 114, 27, 150, 140, 
 		1, 184, 53, 47, 162, 208, 93, 71, 202, 115, 254, 228, 105, 54, 187, 161, 44, 149, 24, 
@@ -848,6 +953,9 @@ uint8_t ComputeCrc(const uint8_t* data, uint8_t len, uint8_t initialCrc)
 		241, 124, 102, 235
 	};
 
+uint8_t ComputeCrc(const uint8_t* data, uint8_t len, uint8_t initialCrc)
+{
+	
 	uint8_t crc = initialCrc;
 	 
 	for (; len > 0; data++, len--)
@@ -858,6 +966,11 @@ uint8_t ComputeCrc(const uint8_t* data, uint8_t len, uint8_t initialCrc)
 	return crc;
 }
 
+uint8_t ComputeNextCrc(uint8_t data, uint8_t previous_crc)
+{
+	data =data^previous_crc;
+	return crc_table[data];
+}
 
 
 

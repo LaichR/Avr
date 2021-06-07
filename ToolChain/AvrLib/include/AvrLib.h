@@ -19,12 +19,13 @@
 #define TRACE(traceStr,...)
 #define countof(array)      (sizeof(array)/sizeof(array[0]))
 
-//#define DEBUG_PORT B
+#define DEBUG_PORT D
 #ifdef DEBUG_PORT
 #define cat(x,y)    x ## y
 #define xcat( x, y) cat(x,y)
 #define SET_DBG_PIN(x) xcat(Port,DEBUG_PORT).PORT |= (1<<x)
 #define CLR_DBG_PIN(x) xcat(Port,DEBUG_PORT).PORT &= ~(1<<x)
+#define TOGGLE_DBG_PIN(x) xcat(Port,DEBUG_PORT).PORT ^= (1<<x)
 #else
 #define SET_DBG_PIN(x) 
 #define CLR_DBG_PIN(x)
@@ -122,11 +123,13 @@ typedef enum
 	 PacketType_Undefined = 0,                  ///< spare
 	 PacketType_LiftSimulatorButton = 0xA2,     ///< a button on the AVR terminal application was pressed. The data is in the payload[0] byte
 	 PacketType_TestCommand = 0xA3,             ///< a test command was sent from the AVR terminal application
-     PacketType_RawData = 0xA4,                 ///< raw date is transmitted from any UART channel
+     PacketType_BoardStatus = 0xA4,                 ///< raw date is transmitted from any UART channel
      PacketType_ReadRegister = 0xA6,            ///< read register command
      PacketType_WriteRegister = 0xA8,           ///< write register command
      PacketType_TraceMassagePadLen = 0xA8,      ///< The unused of this value hold the length of a trace message
 	 PacketType_TraceMessage = 0xA5,            ///< a trace message is sent from the board to the PC
+     PacketType_AnyData = 0xAA,
+     PacketType_AnyDataAck = 0xAB,
 } AvrPacketType;
 
 /**
@@ -362,6 +365,29 @@ void SendMessage(uint8_t prio, uint8_t id, uint8_t msgLow, uint8_t msgHigh);
 Bool DispatchEvent(void);
 
 /**
+ * @brief Acknowledges a specified number of beytes to the PC
+ * 
+ * @param nrOfBytes Number of bytes that have been processed by the application; hence at least
+ * that many bytes fit again in the receive queue.
+ * 
+ * @note This function must not be called in interrupt context. It might lead to a dead lock!
+ */
+void Usart_AckBytes(uint8_t nrOfBytes, AvrPacketType packetType);
+
+
+/**
+ * @brief Send some data bytes to the PC. 
+ * 
+ * @param bytes Data to be sent
+ * @param count Number of bytes to be sent
+ * 
+ * @note This function must not be called in interrupt context. It might lead to a dead lock!
+ */
+
+void Usart_SendAnyData(const uint8_t *bytes, uint8_t count);
+
+
+/**
 * @brief initialize port D to use the uart
 */
 void Usart_Init(uint32_t baudrate);
@@ -370,11 +396,48 @@ void Usart_Init(uint32_t baudrate);
 * Don't bother about these implementations; you should not use them directly;
 * that's up to the build process!
 */
-void Usart_Trace0(uint16_t id );
-void Usart_Trace1(uint16_t id, uint8_t val);
-void Usart_Trace2(uint16_t id, uint8_t val1, uint8_t val2);
-void Usart_Trace3(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3);
-void Usart_Trace4(uint16_t id, uint8_t val1, uint8_t val2, uint8_t val3, uint8_t val4);
+
+typedef struct
+{
+    uint16_t id;
+}ZeroByteTrace_T;
+
+typedef struct
+{
+    uint16_t id;
+    uint8_t b0;
+}OneByteTrace_T;
+
+typedef struct
+{
+    uint16_t id;
+    uint8_t b0;
+    uint8_t b1;
+}TwoByteTrace_T;
+
+typedef struct
+{
+    uint16_t id;
+    uint8_t b0;
+    uint8_t b1;
+    uint8_t b2;
+}ThreeByteTrace_T;
+
+typedef struct
+{
+    uint16_t id;
+    uint8_t b0;
+    uint8_t b1;
+    uint8_t b2;
+    uint8_t b3;
+}FourByteTrace_T;
+
+
+void Usart_Trace0( ZeroByteTrace_T t );
+void Usart_Trace1( OneByteTrace_T t);
+void Usart_Trace2( TwoByteTrace_T t);
+void Usart_Trace3( ThreeByteTrace_T t);
+void Usart_Trace4( FourByteTrace_T t);
 
 /**
 * @brief Put one charactor to the Uart
@@ -399,6 +462,24 @@ void IsrEnter(void);
 * @brief mark end of ISR
 */
 void IsrLeave(void);
+
+
+/**
+ * @brief compute the crc over a byte array
+ * 
+ * @param array This is the byte array over that the crc has to be computed
+ * @param len   Number of bytes within the byte array
+ * @param initial_crc initial seed to start the computation with
+ */
+uint8_t ComputeCrc(const uint8_t* array, uint8_t len, uint8_t initial_crc);
+
+/**
+ * @brief compute the next crc
+ * 
+ * Sometimes it is more convenient to compute the crc on the fly
+ */
+
+uint8_t ComputeNextCrc( uint8_t data, uint8_t previous_crc);
 
 /** @} */
 

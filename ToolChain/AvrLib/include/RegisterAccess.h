@@ -15,7 +15,7 @@
 
 
 /**
-* concatenation
+* concatenation 
 */
 #define __concat( x, y )    x ## y
 #define concat( x, y)    __concat( x, y)
@@ -34,12 +34,11 @@
 
 
 
-
-
 #define BitMask(width,pos)    (concat(BitMask_, width)<<pos)
 
 
-// die nachfolgenden zwei macros entsprechen der Musterlösung für die Übungen
+// die nachfolgenden zwei macros entsprechen der Musterloesung für die Uebungen
+
 #define ReadReg( reg, width, pos)	((reg & BitMask(width,pos))>>pos)
 
 
@@ -75,6 +74,5 @@
 #define GetBitmask_5(field1, field2, field3, field4, field5 ) GetBitmask_1(field1), GetBitmask_4(field2, field3, field4, field5)
 #define GetBitmask_6(field1, field2, field3, field4, field5, field6 ) GetBitmask_1(field1), GetBitmask_5(field2, field2, field3, field4, field5, field6)
 #define GetBitmask_7(field1, field2, field3, field4, field5, field6, field7 ) GetBitmask_1(field1), GetBitmask_6(field2, field2, field3, field4, field5, field6, field7)
-
 
 #endif
